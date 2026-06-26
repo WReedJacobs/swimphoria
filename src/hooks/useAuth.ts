@@ -13,6 +13,7 @@ export function useAuth() {
   const signUp = useAuthStore((s) => s.signUp)
   const signOut = useAuthStore((s) => s.signOut)
   const setRole = useAuthStore((s) => s.setRole)
+  const refreshProfile = useAuthStore((s) => s.refreshProfile)
 
   return {
     session,
@@ -26,5 +27,6 @@ export function useAuth() {
     signUp,
     signOut,
     setRole,
+    refreshProfile,
   }
 }

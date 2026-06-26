@@ -46,6 +46,7 @@ import { FindCoachPage } from '@/features/beginner/FindCoachPage'
 // Shared
 import { DrillLibraryPage } from '@/features/shared/DrillLibraryPage'
 import { BookingPage } from '@/features/shared/BookingPage'
+import { SettingsPage } from '@/features/shared/SettingsPage'
 
 export default function App() {
   const init = useAuthStore((s) => s.init)
@@ -86,6 +87,7 @@ export default function App() {
         <Route path="/coach/messages" element={<MessagesPage />} />
         <Route path="/coach/bookings" element={<BookingPage />} />
         <Route path="/coach/drills" element={<DrillLibraryPage />} />
+        <Route path="/coach/settings" element={<SettingsPage />} />
       </Route>
 
       {/* Swimmer */}
@@ -104,6 +106,7 @@ export default function App() {
         <Route path="/swimmer/feedback" element={<FeedbackViewPage />} />
         <Route path="/swimmer/achievements" element={<AchievementsPage />} />
         <Route path="/swimmer/drills" element={<DrillLibraryPage />} />
+        <Route path="/swimmer/settings" element={<SettingsPage />} />
       </Route>
 
       {/* Beginner — public, no auth required */}

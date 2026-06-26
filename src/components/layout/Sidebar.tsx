@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { Settings } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BrandMark } from '@/components/BrandMark'
 import type { Role } from '@/types'
@@ -7,6 +8,17 @@ import { navForRole } from './nav'
 export function Sidebar({ role }: { role: Role | null }) {
   const items = navForRole(role)
   const beginner = role === 'beginner'
+  const settingsPath = role === 'coach' ? '/coach/settings' : role === 'swimmer' ? '/swimmer/settings' : null
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'flex items-center gap-3 rounded-component px-3 py-2 text-sm font-medium transition-colors',
+      isActive
+        ? beginner
+          ? 'bg-coral/10 text-coral shadow-[inset_2px_0_0_rgb(var(--c-coral))]'
+          : 'bg-primary/10 text-primary shadow-[inset_2px_0_0_rgb(var(--c-primary))]'
+        : 'text-text-secondary hover:bg-bg hover:text-text-primary',
+    )
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
@@ -23,22 +35,22 @@ export function Sidebar({ role }: { role: Role | null }) {
             key={item.to}
             to={item.to}
             end={item.to.split('/').length <= 2}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-component px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? beginner
-                    ? 'bg-coral/10 text-coral shadow-[inset_2px_0_0_rgb(var(--c-coral))]'
-                    : 'bg-primary/10 text-primary shadow-[inset_2px_0_0_rgb(var(--c-primary))]'
-                  : 'text-text-secondary hover:bg-bg hover:text-text-primary',
-              )
-            }
+            className={linkClass}
           >
             <item.icon className="h-5 w-5 shrink-0" />
             {item.label}
           </NavLink>
         ))}
       </nav>
+
+      {settingsPath && (
+        <div className="border-t border-border p-3">
+          <NavLink to={settingsPath} className={linkClass}>
+            <Settings className="h-5 w-5 shrink-0" />
+            Settings
+          </NavLink>
+        </div>
+      )}
     </aside>
   )
 }

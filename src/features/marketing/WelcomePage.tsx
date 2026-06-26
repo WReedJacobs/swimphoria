@@ -177,9 +177,9 @@ export function WelcomePage() {
           <BrandMark />
           <nav style={{ display: 'flex', alignItems: 'center', gap: 30 }} className="hidden md:flex">
             {[
-              ['Train', '/beginner/program'],
-              ['Analytics', '/beginner/milestones'],
-              ['Coaching', '/beginner/find-coach'],
+              ['For Coaches', '/login'],
+              ['For Swimmers', '/start'],
+              ['Beginners', '/beginner'],
             ].map(([label, to]) => (
               <button
                 key={label}
