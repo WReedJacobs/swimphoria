@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays, Target } from 'lucide-react'
+import { CalendarDays, Target, UserPlus, ArrowRight } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { StatTile } from '@/components/ui/StatTile'
@@ -10,9 +10,94 @@ import { SessionBlocks } from '@/components/SessionBlocks'
 import { TimesChart } from '@/components/charts/TimesChart'
 import { useMySwimmer, useAssignedSessions } from '@/hooks/useMySwimmer'
 import { useTimes } from '@/hooks/useTimes'
+import { useJoinCoach } from '@/hooks/useJoinCode'
+import { useAuth } from '@/hooks/useAuth'
 import { fastestByEvent } from '@/lib/pbDetector'
+import { cn } from '@/lib/cn'
+
+function JoinCoachCard() {
+  const { mutateAsync: joinCoach } = useJoinCoach()
+  const [code, setCode] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async () => {
+    if (code.length !== 6) return
+    setLoading(true)
+    setError(null)
+    try {
+      const result = await joinCoach(code)
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setSuccess(true)
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (success) {
+    return (
+      <Card className="border-secondary/40 bg-secondary/5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10 text-secondary">
+            <UserPlus className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-semibold text-text-primary">Connected to your coach</p>
+            <p className="text-sm text-text-secondary">Sessions and feedback will appear here shortly.</p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader
+        title="Join your coach"
+        subtitle="Ask your coach for their 6-character join code and enter it below."
+      />
+      <div className="flex items-start gap-3">
+        <div className="flex-1">
+          <input
+            type="text"
+            maxLength={6}
+            placeholder="ABC123"
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+              setError(null)
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            className={cn(
+              'w-full rounded-component border bg-surface px-3 py-2 font-mono text-xl font-bold uppercase tracking-[0.25em] text-text-primary placeholder:text-text-muted',
+              'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30',
+              error ? 'border-danger focus:ring-danger/30' : 'border-border',
+            )}
+          />
+          {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+        </div>
+        <Button
+          leftIcon={<ArrowRight className="h-4 w-4" />}
+          loading={loading}
+          disabled={code.length !== 6}
+          onClick={handleSubmit}
+          className="mt-0.5"
+        >
+          Join
+        </Button>
+      </div>
+    </Card>
+  )
+}
 
 export function SwimmerDashboard() {
+  const { profile } = useAuth()
   const { data: swimmer } = useMySwimmer()
   const { data: sessions } = useAssignedSessions(swimmer?.id)
   const { data: times } = useTimes(swimmer?.id)
@@ -22,8 +107,20 @@ export function SwimmerDashboard() {
 
   const pbCount = useMemo(() => fastestByEvent(times ?? []).size, [times])
 
+  // Show join card when no coach is linked, or when the swimmer is self-managed
+  // (coach_id === profile.id means the onboarding created a self-managed row)
+  const hasRealCoach =
+    profile?.coach_id !== null && profile?.coach_id !== profile?.id
+
   return (
     <div className="space-y-8">
+      {!hasRealCoach && (
+        <div>
+          <SectionHeader kicker="Get started" />
+          <JoinCoachCard />
+        </div>
+      )}
+
       <div>
         <SectionHeader kicker="Overview" />
         <div className="grid gap-4 sm:grid-cols-3">
@@ -50,7 +147,11 @@ export function SwimmerDashboard() {
               <SessionBlocks session={todaySession} />
             </div>
           ) : (
-            <EmptyState icon={<CalendarDays className="h-6 w-6" />} title="No session today" description="Enjoy the rest, or log a swim of your own." />
+            <EmptyState
+              icon={<CalendarDays className="h-6 w-6" />}
+              title="No session today"
+              description="Enjoy the rest, or log a swim of your own."
+            />
           )}
         </Card>
       </div>

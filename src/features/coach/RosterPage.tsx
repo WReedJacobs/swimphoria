@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Users, Search, Timer } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
+import { Plus, Users, Search, Timer, Copy, Check, RefreshCw } from 'lucide-react'
+import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Button } from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/Input'
@@ -12,9 +12,62 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { AddSwimmerModal } from './AddSwimmerModal'
 import { useSwimmers } from '@/hooks/useSwimmers'
 import { useTimes } from '@/hooks/useTimes'
+import { useMyJoinCode } from '@/hooks/useJoinCode'
 import { formatTime } from '@/lib/formatTime'
 import { swimmerName } from '@/types'
 import type { Level } from '@/types'
+
+function JoinCodeCard() {
+  const { code, generate, generating } = useMyJoinCode()
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    if (!code) return
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Card className="mb-6">
+      <CardHeader
+        title="Swimmer join code"
+        subtitle="Share this code with swimmers — they enter it on their dashboard to link to your roster instantly."
+      />
+      {code ? (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 rounded-component border border-border bg-bg px-4 py-3">
+            <span className="font-mono text-2xl font-bold tracking-[0.3em] text-primary">
+              {code}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={copied ? <Check className="h-4 w-4 text-secondary" /> : <Copy className="h-4 w-4" />}
+            onClick={copy}
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<RefreshCw className="h-4 w-4" />}
+            loading={generating}
+            onClick={generate}
+            title="Generate a new code"
+          >
+            New
+          </Button>
+        </div>
+      ) : (
+        <Button leftIcon={<Plus className="h-4 w-4" />} loading={generating} onClick={generate}>
+          Generate join code
+        </Button>
+      )}
+    </Card>
+  )
+}
 
 export function RosterPage() {
   const { data: swimmers, isLoading } = useSwimmers()
@@ -51,6 +104,7 @@ export function RosterPage() {
   return (
     <div className="space-y-8">
       <SectionHeader kicker="Roster" />
+      <JoinCodeCard />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-wrap items-end gap-3">
           <div className="relative">

@@ -29,6 +29,7 @@ export interface Profile {
   avatar_url: string | null
   level: Level | null
   coach_id: string | null
+  join_code: string | null
   created_at: string
 }
 
