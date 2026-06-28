@@ -7,6 +7,7 @@ import { AuthLayout } from './AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { Mail } from 'lucide-react'
 
 const schema = z.object({
   fullName: z.string().min(2, 'Enter your name'),
@@ -19,6 +20,7 @@ export function SignUpPage() {
   const { signUp, loading } = useAuth()
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [confirmEmail, setConfirmEmail] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -28,12 +30,39 @@ export function SignUpPage() {
   const onSubmit = async (values: FormValues) => {
     setServerError(null)
     try {
-      await signUp(values.email, values.password, values.fullName)
-      // After sign-up, send to role selection.
-      navigate('/role-select')
+      const result = await signUp(values.email, values.password, values.fullName)
+      if (result?.needsConfirmation) {
+        setConfirmEmail(values.email)
+      } else {
+        navigate('/role-select')
+      }
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Sign up failed')
     }
+  }
+
+  if (confirmEmail) {
+    return (
+      <AuthLayout
+        title="Check your email"
+        subtitle={`We sent a confirmation link to ${confirmEmail}`}
+        footer={
+          <Link to="/login" className="font-medium text-primary hover:underline">
+            Back to sign in
+          </Link>
+        }
+      >
+        <div className="flex flex-col items-center gap-3 py-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Mail className="h-6 w-6" />
+          </div>
+          <p className="text-sm text-text-secondary">
+            Click the link in the email to confirm your account, then come back and sign in.
+            Check your spam folder if you don't see it.
+          </p>
+        </div>
+      </AuthLayout>
+    )
   }
 
   return (
