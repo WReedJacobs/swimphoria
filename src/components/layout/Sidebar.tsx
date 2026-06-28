@@ -1,11 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { Settings } from 'lucide-react'
+import { Settings, Shield } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BrandMark } from '@/components/BrandMark'
 import type { Role } from '@/types'
 import { navForRole } from './nav'
+import { useAuth } from '@/hooks/useAuth'
 
 export function Sidebar({ role }: { role: Role | null }) {
+  const { isAdmin } = useAuth()
   const items = navForRole(role)
   const beginner = role === 'beginner'
   const settingsPath = role === 'coach' ? '/coach/settings' : role === 'swimmer' ? '/swimmer/settings' : null
@@ -43,12 +45,20 @@ export function Sidebar({ role }: { role: Role | null }) {
         ))}
       </nav>
 
-      {settingsPath && (
-        <div className="border-t border-border p-3">
-          <NavLink to={settingsPath} className={linkClass}>
-            <Settings className="h-5 w-5 shrink-0" />
-            Settings
-          </NavLink>
+      {(settingsPath || isAdmin) && (
+        <div className="border-t border-border p-3 space-y-1">
+          {settingsPath && (
+            <NavLink to={settingsPath} className={linkClass}>
+              <Settings className="h-5 w-5 shrink-0" />
+              Settings
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to="/admin" className={linkClass}>
+              <Shield className="h-5 w-5 shrink-0" />
+              Admin
+            </NavLink>
+          )}
         </div>
       )}
     </aside>

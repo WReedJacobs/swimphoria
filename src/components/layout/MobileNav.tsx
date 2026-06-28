@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Settings, MoreHorizontal } from 'lucide-react'
+import { Settings, MoreHorizontal, Shield } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { navForRole } from './nav'
 import type { NavItem } from './nav'
 import type { Role } from '@/types'
+import { useAuth } from '@/hooks/useAuth'
 
 // Which nav items are promoted to the 3 primary tabs per role.
 // Everything else goes into the "More" drawer.
@@ -15,6 +16,7 @@ const PRIMARY_PATHS: Partial<Record<Role, string[]>> = {
 }
 
 export function MobileNav({ role }: { role: Role | null }) {
+  const { isAdmin } = useAuth()
   const allItems = navForRole(role)
   const { pathname } = useLocation()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -123,28 +125,51 @@ export function MobileNav({ role }: { role: Role | null }) {
             )
           })}
 
-          {settingsPath && (
+          {(settingsPath || isAdmin) && (
             <>
               <div className="my-2 border-t border-border" />
-              <NavLink
-                to={settingsPath}
-                onClick={() => setDrawerOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-component px-4 py-3 text-sm transition-colors',
-                    isActive
-                      ? drawerActiveAccent
-                      : 'text-text-secondary hover:bg-bg hover:text-text-primary',
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <Settings className={cn('h-5 w-5 shrink-0', isActive ? activeClass : 'text-text-muted')} />
-                    Settings
-                  </>
-                )}
-              </NavLink>
+              {settingsPath && (
+                <NavLink
+                  to={settingsPath}
+                  onClick={() => setDrawerOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-component px-4 py-3 text-sm transition-colors',
+                      isActive
+                        ? drawerActiveAccent
+                        : 'text-text-secondary hover:bg-bg hover:text-text-primary',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Settings className={cn('h-5 w-5 shrink-0', isActive ? activeClass : 'text-text-muted')} />
+                      Settings
+                    </>
+                  )}
+                </NavLink>
+              )}
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  onClick={() => setDrawerOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex items-center gap-3 rounded-component px-4 py-3 text-sm transition-colors',
+                      isActive
+                        ? drawerActiveAccent
+                        : 'text-text-secondary hover:bg-bg hover:text-text-primary',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Shield className={cn('h-5 w-5 shrink-0', isActive ? activeClass : 'text-text-muted')} />
+                      Admin
+                    </>
+                  )}
+                </NavLink>
+              )}
             </>
           )}
         </nav>

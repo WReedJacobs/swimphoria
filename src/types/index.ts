@@ -25,6 +25,7 @@ export const DISTANCES = [25, 50, 100, 200, 400, 800, 1500] as const
 export interface Profile {
   id: string
   full_name: string
+  email?: string | null
   role: Role
   avatar_url: string | null
   level: Level | null
