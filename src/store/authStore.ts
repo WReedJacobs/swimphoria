@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Fetch profile immediately so callers can read the role right after awaiting signIn
       if (data.user) {
         const profile = await fetchProfile(data.user.id)
-        set({ profile })
+        set({ session: data.session, profile })
       }
     } finally {
       set({ loading: false })
