@@ -57,7 +57,7 @@ serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Swimphoria <onboarding@resend.dev>',
+      from: 'Swimphoria <noreply@swimphoria.co.za>',
       to: swimmerProfile.email,
       subject: isPB
         ? `New personal best! ${event} — ${timeStr}`

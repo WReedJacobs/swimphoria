@@ -37,7 +37,7 @@ serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Swimphoria <onboarding@resend.dev>',
+      from: 'Swimphoria <noreply@swimphoria.co.za>',
       to: msg.recipient.email,
       subject: `New message from ${senderName}`,
       html: `
