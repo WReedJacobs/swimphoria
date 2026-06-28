@@ -9,6 +9,8 @@ import {
   Waves,
   Target,
   Trophy,
+  Medal,
+  IdCard,
   ClipboardList,
   BookOpen,
   Library,
@@ -41,6 +43,8 @@ const coachNav: NavItem[] = [
   { label: 'Messages', to: '/coach/messages', icon: MessageSquare },
   { label: 'Schedule', to: '/coach/bookings', icon: CalendarCheck },
   { label: 'Drills', to: '/coach/drills', icon: Library },
+  { label: 'Leaderboard', to: '/leaderboard', icon: Medal },
+  { label: 'My Profile', mobileLabel: 'Profile', to: '/coach/profile', icon: IdCard },
 ]
 
 const swimmerNav: NavItem[] = [
@@ -54,6 +58,8 @@ const swimmerNav: NavItem[] = [
   { label: 'Messages', to: '/swimmer/messages', icon: MessageSquare },
   { label: 'Achievements', mobileLabel: 'Awards', to: '/swimmer/achievements', icon: Trophy },
   { label: 'Drills', to: '/swimmer/drills', icon: Library },
+  { label: 'Leaderboard', to: '/leaderboard', icon: Medal },
+  { label: 'My Profile', mobileLabel: 'Profile', to: '/swimmer/profile', icon: IdCard },
 ]
 
 const beginnerNav: NavItem[] = [

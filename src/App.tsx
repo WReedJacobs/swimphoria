@@ -57,6 +57,10 @@ import { AdminDashboard } from '@/features/admin/AdminDashboard'
 import { DrillLibraryPage } from '@/features/shared/DrillLibraryPage'
 import { BookingPage } from '@/features/shared/BookingPage'
 import { SettingsPage } from '@/features/shared/SettingsPage'
+import { LeaderboardPage } from '@/features/shared/LeaderboardPage'
+
+// Profile
+import { ProfilePage } from '@/features/swimmer/ProfilePage'
 
 export default function App() {
   const init = useAuthStore((s) => s.init)
@@ -101,6 +105,8 @@ export default function App() {
         <Route path="/coach/bookings" element={<BookingPage />} />
         <Route path="/coach/drills" element={<DrillLibraryPage />} />
         <Route path="/coach/settings" element={<SettingsPage />} />
+        <Route path="/coach/profile" element={<ProfilePage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Route>
 
       {/* Swimmer */}
@@ -122,6 +128,8 @@ export default function App() {
         <Route path="/swimmer/messages" element={<SwimmerMessagesPage />} />
         <Route path="/swimmer/drills" element={<DrillLibraryPage />} />
         <Route path="/swimmer/settings" element={<SettingsPage />} />
+        <Route path="/swimmer/profile" element={<ProfilePage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Route>
 
       {/* Beginner — public, no auth required */}

@@ -5,8 +5,26 @@ import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Button } from '@/components/ui/Button'
 import { ProgressRing } from '@/components/ui/ProgressBar'
+import { SwimmerCard } from '@/components/ui/SwimmerCard'
 import { useBeginnerLogs, useBeginnerGoal } from './beginnerStore'
 import type { LucideIcon } from 'lucide-react'
+import type { SwimmerStatsRow } from '@/hooks/useSwimmerStats'
+
+const PLACEHOLDER_STATS: SwimmerStatsRow = {
+  id: 'placeholder',
+  user_id: 'placeholder',
+  ovr: 30,
+  prev_ovr: 30,
+  spd: 20,
+  end_stat: 20,
+  tec: 20,
+  con: 25,
+  prg: 15,
+  com: 25,
+  tier: 'rookie',
+  last_calculated: new Date().toISOString(),
+  created_at: new Date().toISOString(),
+}
 
 interface QuickLink {
   to: string
@@ -47,6 +65,30 @@ export function BeginnerHome() {
           You don't need a coach to start. Read the guides, log your swims, and tick off milestones at your own pace.
         </p>
       </Card>
+
+      {/* Locked swimmer card — teaser for registered users */}
+      <div>
+        <SectionHeader kicker="Your Rating" />
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          <div className="relative">
+            <SwimmerCard
+              stats={PLACEHOLDER_STATS}
+              name="You"
+              size="md"
+              locked
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold text-text-primary">Unlock your swimmer card</p>
+            <p className="text-sm text-text-secondary">
+              Register as a swimmer to earn your OVR rating based on speed, endurance, technique, consistency, progress, and commitment.
+            </p>
+            <Link to="/signup">
+              <Button accent="coral" size="sm">Create a free account</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
 
       <div>
       <SectionHeader kicker="Progress" />

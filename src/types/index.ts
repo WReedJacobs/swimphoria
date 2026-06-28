@@ -27,6 +27,7 @@ export interface Profile {
   full_name: string
   email?: string | null
   role: Role
+  is_public?: boolean
   avatar_url: string | null
   level: Level | null
   coach_id: string | null

@@ -15,6 +15,7 @@ import {
   Clock,
   Calendar,
   Bookmark,
+  RefreshCw,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
@@ -50,6 +51,7 @@ import {
   type ProfileWithCoach,
   type ActivityItem,
 } from '@/hooks/useAdmin'
+import { useAllStats, useAdminRecalculate } from '@/hooks/useSwimmerStats'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -80,8 +82,8 @@ const roleTone: Record<Role, 'blue' | 'green' | 'coral'> = {
 const ROLES: Role[] = ['coach', 'swimmer', 'beginner']
 const LEVELS: Level[] = ['beginner', 'intermediate', 'elite']
 
-type Tab = 'Overview' | 'Users' | 'Coaches' | 'Drills' | 'Activity' | 'Bookings'
-const TABS: Tab[] = ['Overview', 'Users', 'Coaches', 'Drills', 'Activity', 'Bookings']
+type Tab = 'Overview' | 'Users' | 'Coaches' | 'Drills' | 'Activity' | 'Bookings' | 'Ratings'
+const TABS: Tab[] = ['Overview', 'Users', 'Coaches', 'Drills', 'Activity', 'Bookings', 'Ratings']
 
 // ─── Overview tab ─────────────────────────────────────────────────────────
 
@@ -1174,6 +1176,123 @@ function BookingsTab() {
   )
 }
 
+// ─── Ratings tab ─────────────────────────────────────────────────────────
+
+function RatingsTab() {
+  const { data: allStats, isLoading } = useAllStats()
+  const recalculate = useAdminRecalculate()
+  const [recalcAll, setRecalcAll] = useState<{ running: boolean; done: number; total: number }>({
+    running: false,
+    done: 0,
+    total: 0,
+  })
+
+  async function handleRecalcAll() {
+    if (!allStats?.length) return
+    setRecalcAll({ running: true, done: 0, total: allStats.length })
+    for (const row of allStats) {
+      await recalculate.mutateAsync(row.user_id).catch(() => null)
+      setRecalcAll((s) => ({ ...s, done: s.done + 1 }))
+    }
+    setRecalcAll((s) => ({ ...s, running: false }))
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-text-muted">{allStats?.length ?? 0} swimmer profiles</p>
+        <Button
+          variant="secondary"
+          size="sm"
+          leftIcon={<RefreshCw className="h-4 w-4" />}
+          loading={recalcAll.running}
+          onClick={handleRecalcAll}
+        >
+          {recalcAll.running
+            ? `${recalcAll.done} / ${recalcAll.total}`
+            : 'Recalculate All'}
+        </Button>
+      </div>
+
+      <Card>
+        {isLoading ? (
+          <SkeletonCards />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  {['User', 'OVR', 'SPD', 'END', 'TEC', 'CON', 'PRG', 'COM', 'Tier', 'Updated', ''].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="pb-3 pr-3 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted last:pr-0"
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {(allStats ?? []).map((row) => (
+                  <tr key={row.user_id}>
+                    <td className="py-2.5 pr-3">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={row.profile?.full_name ?? '?'} size="sm" />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-text-primary">
+                            {row.profile?.full_name ?? 'Unknown'}
+                          </p>
+                          <p className="truncate font-mono text-[10px] text-text-muted capitalize">
+                            {row.profile?.role}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-2.5 pr-3 font-mono font-black tabular-nums text-text-primary">
+                      {row.ovr}
+                    </td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.spd}</td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.end_stat}</td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.tec}</td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.con}</td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.prg}</td>
+                    <td className="py-2.5 pr-3 font-mono tabular-nums text-text-secondary">{row.com}</td>
+                    <td className="py-2.5 pr-3">
+                      <Badge tone="gray" className="capitalize">
+                        {row.tier}
+                      </Badge>
+                    </td>
+                    <td className="py-2.5 pr-3 font-mono text-[10px] tabular-nums text-text-muted">
+                      {fmtDate(row.last_calculated)}
+                    </td>
+                    <td className="py-2.5">
+                      <button
+                        onClick={() => recalculate.mutate(row.user_id)}
+                        disabled={recalculate.isPending || recalcAll.running}
+                        title="Recalculate stats"
+                        className="flex h-7 w-7 items-center justify-center rounded-component text-text-muted hover:bg-bg hover:text-text-primary disabled:opacity-40"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {(allStats ?? []).length === 0 && (
+              <p className="py-8 text-center text-sm text-text-muted">
+                No stats yet — run the migration and recalculate
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  )
+}
+
 // ─── Main dashboard ───────────────────────────────────────────────────────
 
 export function AdminDashboard() {
@@ -1208,6 +1327,7 @@ export function AdminDashboard() {
         {activeTab === 'Drills' && <DrillsTab />}
         {activeTab === 'Activity' && <ActivityTab />}
         {activeTab === 'Bookings' && <BookingsTab />}
+        {activeTab === 'Ratings' && <RatingsTab />}
       </div>
     </div>
   )

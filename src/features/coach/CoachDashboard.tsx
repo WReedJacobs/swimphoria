@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, CalendarDays, Trophy, Timer, ArrowRight, Plus, Copy } from 'lucide-react'
+import { Users, CalendarDays, Trophy, Timer, ArrowRight, Plus, Copy, Medal } from 'lucide-react'
 import { StatTile } from '@/components/ui/StatTile'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Card, CardHeader } from '@/components/ui/Card'
@@ -16,6 +16,7 @@ import { useTimes } from '@/hooks/useTimes'
 import { useGoalsForSwimmers } from '@/hooks/useGoals'
 import { useUnreadCount } from '@/hooks/useMessages'
 import { useAuth } from '@/hooks/useAuth'
+import { useSquadLeaderboard } from '@/hooks/useSwimmerStats'
 import { fastestByEvent } from '@/lib/pbDetector'
 import { formatTime } from '@/lib/formatTime'
 import { swimmerName } from '@/types'
@@ -77,6 +78,7 @@ export function CoachDashboard() {
   }, [swimmers, times, goals])
 
   const recent = useMemo(() => (swimmers ?? []).slice(-5).reverse(), [swimmers])
+  const { data: squadLeaderboard = [] } = useSquadLeaderboard(profile?.id ?? null)
 
   // Show focused onboarding when the coach has no swimmers yet
   if (!loadingSwimmers && swimmers?.length === 0) {
@@ -188,6 +190,43 @@ export function CoachDashboard() {
         </Card>
       </div>
       </div>
+
+      {squadLeaderboard.length > 0 && (
+        <div>
+          <SectionHeader
+            kicker="Squad Ratings"
+            action={
+              <Link to="/leaderboard">
+                <Button variant="ghost" size="sm" leftIcon={<Medal className="h-3.5 w-3.5" />}>
+                  Full leaderboard
+                </Button>
+              </Link>
+            }
+          />
+          <Card>
+            <CardHeader title="Top swimmers by OVR" />
+            <ul className="space-y-2">
+              {squadLeaderboard.slice(0, 3).map((entry, i) => (
+                <li key={entry.user_id} className="flex items-center gap-3">
+                  <span className="w-5 text-center font-mono text-sm font-bold text-text-muted">
+                    {i + 1}
+                  </span>
+                  <Avatar name={entry.profile?.full_name ?? '?'} size="sm" />
+                  <span className="flex-1 truncate text-sm font-medium text-text-primary">
+                    {entry.profile?.full_name ?? 'Swimmer'}
+                  </span>
+                  <span className="font-mono text-sm font-black tabular-nums text-text-primary">
+                    {entry.ovr}
+                  </span>
+                  <span className="font-mono text-[10px] uppercase text-text-muted capitalize">
+                    {entry.tier}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+      )}
 
       <div>
       <SectionHeader kicker="Squad" />
