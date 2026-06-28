@@ -19,6 +19,7 @@ import {
   Flag,
   Gauge,
   MapPin,
+  NotebookPen,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -58,6 +59,7 @@ const swimmerNav: NavItem[] = [
   { label: 'Messages', to: '/swimmer/messages', icon: MessageSquare },
   { label: 'Achievements', mobileLabel: 'Awards', to: '/swimmer/achievements', icon: Trophy },
   { label: 'Drills', to: '/swimmer/drills', icon: Library },
+  { label: 'My Planner', mobileLabel: 'Planner', to: '/swimmer/planner', icon: NotebookPen },
   { label: 'Leaderboard', to: '/leaderboard', icon: Medal },
   { label: 'My Profile', mobileLabel: 'Profile', to: '/swimmer/profile', icon: IdCard },
 ]

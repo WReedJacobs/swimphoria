@@ -61,6 +61,7 @@ import { LeaderboardPage } from '@/features/shared/LeaderboardPage'
 
 // Profile
 import { ProfilePage } from '@/features/swimmer/ProfilePage'
+import { SwimPlannerPage } from '@/features/swimmer/SwimPlannerPage'
 
 export default function App() {
   const init = useAuthStore((s) => s.init)
@@ -129,6 +130,7 @@ export default function App() {
         <Route path="/swimmer/drills" element={<DrillLibraryPage />} />
         <Route path="/swimmer/settings" element={<SettingsPage />} />
         <Route path="/swimmer/profile" element={<ProfilePage />} />
+        <Route path="/swimmer/planner" element={<SwimPlannerPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Route>
 
