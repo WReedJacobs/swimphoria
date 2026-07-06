@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react'
-import { CheckCircle2, Circle } from 'lucide-react'
+import { CheckCircle2, Circle, ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Badge } from '@/components/ui/Badge'
 import { BeginnerTip } from '@/components/ui/BeginnerTip'
+import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/cn'
 import { fitnessProgram } from './content'
 import { useJourneyStore } from '@/store/beginnerJourneyStore'
@@ -60,7 +62,7 @@ export function FitnessProgramPage() {
         tip="Pick any session from Week 1 and follow it at the pool. Come back and mark it done."
       />
       <Card className="border-coral/20 bg-coral/5">
-        <h2 className="text-xl font-semibold text-text-primary">4-week fitness program</h2>
+        <h2 className="text-xl font-semibold text-text-primary">8-week fitness programme</h2>
         <p className="mt-1 text-sm text-text-secondary">
           Two sessions a week, each with a warm-up, main set, and cool-down. Go at your own pace — it's fine to repeat a week before moving on.
         </p>
@@ -78,8 +80,34 @@ export function FitnessProgramPage() {
       </Card>
 
       <div className="space-y-5">
-        <SectionHeader kicker="Program" />
-        {fitnessProgram.map((week) => {
+        <SectionHeader kicker="Programme" />
+
+        {/* Week 0 — water confidence callout */}
+        {fitnessProgram.some((w) => w.week === 0) && (
+          <Card className="border-primary/20 bg-primary/5">
+            <div className="mb-2 flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 font-mono text-sm font-semibold text-primary tabular-nums">
+                0
+              </div>
+              <div>
+                <h3 className="font-semibold text-text-primary">Week 0 — Water Confidence</h3>
+                <p className="text-sm text-text-secondary">
+                  {fitnessProgram.find((w) => w.week === 0)?.focus}
+                </p>
+              </div>
+            </div>
+            <p className="mb-3 text-sm text-text-secondary">
+              {fitnessProgram.find((w) => w.week === 0)?.readiness}
+            </p>
+            <Link to="/beginner/learn/water-confidence">
+              <Button size="sm" variant="secondary" rightIcon={<ArrowRight className="h-3.5 w-3.5" />}>
+                Start Water Confidence guide
+              </Button>
+            </Link>
+          </Card>
+        )}
+
+        {fitnessProgram.filter((w) => w.week > 0).map((week) => {
           const weekDone = week.sessions.filter((s) => done.has(`w${week.week}-${s.title}`)).length
           return (
             <Card key={week.week}>
@@ -97,6 +125,9 @@ export function FitnessProgramPage() {
                     )}
                   </div>
                   <p className="text-sm text-text-secondary">{week.focus}</p>
+                  {'readiness' in week && week.readiness && (
+                    <p className="mt-1 text-xs text-text-muted italic">{week.readiness}</p>
+                  )}
                 </div>
                 <span className="shrink-0 font-mono text-xs tabular-nums text-text-muted">
                   {weekDone}/{week.sessions.length}

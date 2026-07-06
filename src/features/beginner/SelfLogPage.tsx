@@ -8,6 +8,7 @@ import { Input, Select } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { BeginnerTip } from '@/components/ui/BeginnerTip'
 import { formatTime, parseTime } from '@/lib/formatTime'
+import { localDateStr } from '@/lib/dateLocal'
 import { STROKES, DISTANCES } from '@/types'
 import { useBeginnerLogs } from './beginnerStore'
 import { useJourneyStore } from '@/store/beginnerJourneyStore'
@@ -22,7 +23,7 @@ function isoWeek(dateStr: string): string {
 export function SelfLogPage() {
   const [logs, setLogs] = useBeginnerLogs()
   const { markStep } = useJourneyStore()
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(localDateStr())
   const [stroke, setStroke] = useState<string>('freestyle')
   const [distance, setDistance] = useState(25)
   const [raw, setRaw] = useState('')

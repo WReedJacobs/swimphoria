@@ -18,12 +18,6 @@ const statusTone: Record<BookingStatus, 'amber' | 'green' | 'gray'> = {
   cancelled: 'gray',
 }
 
-function extractPreferredDate(notes: string | null | undefined): string | null {
-  if (!notes) return null
-  const match = notes.match(/Preferred date:\s*(\d{4}-\d{2}-\d{2})/)
-  return match ? match[1] : null
-}
-
 export function BookingPage() {
   const navigate = useNavigate()
   const { data: bookings } = useBookings()
@@ -49,9 +43,8 @@ export function BookingPage() {
 
   const createSession = () => {
     if (!justConfirmed) return
-    const date = extractPreferredDate(justConfirmed.notes)
     const params = new URLSearchParams({ swimmerId: justConfirmed.swimmer_id })
-    if (date) params.set('date', date)
+    if (justConfirmed.preferred_date) params.set('date', justConfirmed.preferred_date)
     navigate(`/coach/sessions/new?${params.toString()}`)
     setJustConfirmed(null)
   }
@@ -70,8 +63,8 @@ export function BookingPage() {
                 Confirmed for {nameById.get(justConfirmed.swimmer_id) ?? 'swimmer'}
               </p>
               <p className="text-xs text-text-secondary">
-                {extractPreferredDate(justConfirmed.notes)
-                  ? `Preferred date: ${new Date(extractPreferredDate(justConfirmed.notes)! + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+                {justConfirmed.preferred_date
+                  ? `Preferred date: ${new Date(justConfirmed.preferred_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
                   : 'No preferred date given'}
                 {' — '}Create a session now to assign it?
               </p>
@@ -96,10 +89,10 @@ export function BookingPage() {
                   <p className="text-sm font-medium text-text-primary">{nameById.get(b.swimmer_id) ?? 'Swimmer'}</p>
                   <p className="text-xs text-text-muted">
                     Requested <span className="font-mono tabular-nums">{new Date(b.requested_at).toLocaleDateString()}</span>
-                    {extractPreferredDate(b.notes) && (
-                      <> · Preferred <span className="font-mono tabular-nums">{new Date(extractPreferredDate(b.notes)! + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></>
+                    {b.preferred_date && (
+                      <> · Preferred <span className="font-mono tabular-nums">{new Date(b.preferred_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></>
                     )}
-                    {b.notes && !b.notes.startsWith('Preferred date:') && ` · ${b.notes}`}
+                    {b.notes && ` · ${b.notes}`}
                   </p>
                 </div>
                 <Button size="sm" variant="secondary" leftIcon={<Check className="h-4 w-4" />} loading={updateStatus.isPending} onClick={() => handleConfirm(b)}>

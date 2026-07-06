@@ -2,6 +2,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 import type { Level, Stroke } from '@/types'
 
 export type OnboardingRole = 'coach' | 'swimmer'
+export type StartingPoint = 'water-confidence' | 'beginner' | 'trained' | null
 
 export interface OnboardingDraft {
   onboardingRole: OnboardingRole | null
@@ -13,6 +14,7 @@ export interface OnboardingDraft {
     timeSeconds: number
   }
   deviceConnected: boolean
+  startingPoint: StartingPoint
 }
 
 export interface LevelTemplate {
@@ -60,6 +62,7 @@ const DEFAULT_DRAFT: OnboardingDraft = {
   weeklyGoalMeters: LEVEL_TEMPLATES.intermediate.weeklyGoalMeters,
   session: { ...LEVEL_TEMPLATES.intermediate.session },
   deviceConnected: false,
+  startingPoint: null,
 }
 
 export function useOnboardingDraft() {

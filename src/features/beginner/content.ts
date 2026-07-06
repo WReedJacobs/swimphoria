@@ -1,14 +1,19 @@
 // Static beginner-mode content: stroke guides, glossary, pool guide, training basics, and 8-week program.
 
+// ─── Stroke guides ─────────────────────────────────────────────────────────────
+
 export interface StrokeGuide {
   stroke: string
   blurb: string
   breathing: string
   whyItMatters: string
+  beginnerPriority: string
+  sequence: string[]
   tips: string[]
   mistakes: string[]
   coachSpeak: { phrase: string; meaning: string }[]
   drills: string[]
+  videoUrl?: string
 }
 
 export const strokeGuides: StrokeGuide[] = [
@@ -20,6 +25,16 @@ export const strokeGuides: StrokeGuide[] = [
       'Rotate your head to the side — not up — so one goggle stays in the water. Inhale through your mouth in the pocket of air formed by your bow wave, then return your face immediately to the water. Most swimmers breathe every 3 strokes (bilateral), which keeps the stroke balanced. Every 2 strokes is fine if you need more air.',
     whyItMatters:
       'Freestyle is the most efficient stroke per metre — improving it gives you the biggest fitness return per session and forms the core of almost every training plan.',
+    beginnerPriority:
+      'Learn this first. Freestyle is the most efficient and versatile stroke. Once you can swim a length of freestyle with controlled breathing, everything else builds from that foundation.',
+    sequence: [
+      'Entry — hand enters the water fingertips first, in line with your shoulder, arm extended.',
+      'Extension — arm fully extends forward as your body rotates slightly, hip driving forward.',
+      'Catch — elbow bends early underwater, forearm faces backward to grip the water (early vertical forearm).',
+      'Pull — forearm sweeps back powerfully under your body, elbow high, hand tracking toward your hip.',
+      'Finish — hand exits the water near your hip with a final push; thumb faces down.',
+      'Recovery — elbow leads the arm back over the water, hand relaxed and trailing.',
+    ],
     tips: [
       'Keep your body long and flat, like an arrow pointing at the far wall.',
       'Rotate your shoulders with each pull — 15 to 45 degrees each side. Rotation is power.',
@@ -45,6 +60,7 @@ export const strokeGuides: StrokeGuide[] = [
       { phrase: 'DPS', meaning: 'Distance per stroke — how far you travel per arm cycle. Fewer strokes per length means better efficiency.' },
     ],
     drills: ['Catch-Up Drill', 'Fingertip Drag', 'Fist Drill', 'Side Kick'],
+    videoUrl: undefined,
   },
   {
     stroke: 'Backstroke',
@@ -54,6 +70,16 @@ export const strokeGuides: StrokeGuide[] = [
       'Your face is never submerged, so you can breathe freely. Most swimmers develop a rhythm — breathe in as one arm enters the water, out as the other enters. The key is to keep breathing relaxed rather than holding your breath out of habit.',
     whyItMatters:
       'Backstroke is ideal for recovery sets and aerobic base building because breathing is unrestricted. It also counteracts the forward-hunched position of freestyle, making it important for posture and shoulder health.',
+    beginnerPriority:
+      'Learn this second. Backstroke is the ideal complement to freestyle — breathing is free, it strengthens your posterior muscles, and it gives you a mental rest during sets. The navigation challenge is real but manageable once you know your stroke count from the flags.',
+    sequence: [
+      'Entry — little-finger-first entry, arm extended in line with your shoulder.',
+      'Extension — arm sinks slightly as your shoulder rotates under and your body rolls to that side.',
+      'Catch — elbow bends, wrist flexes, forearm faces toward your feet.',
+      'Pull — forearm sweeps toward your hip in an S-shaped path.',
+      'Finish — hand pushes down near your hip, palm facing the pool floor.',
+      'Recovery — arm exits thumb-first, swings over the water and enters again.',
+    ],
     tips: [
       'Keep your ears in the water and eyes looking straight up — not forward.',
       'Roll your shoulders with each stroke, same rotation principle as freestyle.',
@@ -79,6 +105,7 @@ export const strokeGuides: StrokeGuide[] = [
       { phrase: 'Underwaters', meaning: 'The dolphin-kick phase under the surface after the push-off — the fastest part of your race.' },
     ],
     drills: ['Single Arm Backstroke', 'Backstroke Flags Awareness', 'Pinky-First Entry Drill', 'Backstroke Sculling'],
+    videoUrl: undefined,
   },
   {
     stroke: 'Breaststroke',
@@ -88,6 +115,16 @@ export const strokeGuides: StrokeGuide[] = [
       'Breathe during the pull phase — as your arms sweep out and your chest naturally rises, lift your chin forward and inhale. Drop your face back into the water as your arms stretch forward into the glide. Never breathe during the kick or the glide.',
     whyItMatters:
       'Breaststroke is the most common recreational stroke. Its glide phase makes long swims naturally restorative, and mastering the timing makes it far less tiring than it initially feels.',
+    beginnerPriority:
+      'Learn this third. Breaststroke timing is the trickiest of the four strokes to master — pulling and kicking at the same time feels natural but produces a slow, inefficient stroke. Give yourself time with the sequence before worrying about speed.',
+    sequence: [
+      'Glide — body is in a tight streamline, face down, arms extended, momentum carrying you forward.',
+      'Pull — arms sweep outward to shoulder-width, elbows high, hands angled down.',
+      'Breathe — as arms sweep in and chest rises, chin comes forward to inhale.',
+      'Recovery — hands draw together under the chin, palms facing each other, elbows tucking in.',
+      'Kick — heels draw up toward the glutes, feet evert outward, then snap together in a circular whip.',
+      'Return to glide — hold streamline for a beat before the next cycle.',
+    ],
     tips: [
       'Sequence every stroke: pull, breathe, kick, glide — in that order, every time.',
       'Stretch into a full streamline after every kick — the glide is free speed.',
@@ -113,6 +150,7 @@ export const strokeGuides: StrokeGuide[] = [
       { phrase: 'Two-hand touch', meaning: 'Required on every turn and finish — both hands must touch simultaneously at the same level.' },
     ],
     drills: ['Breaststroke Kick Only', 'Breaststroke Timing Drill', '2-Kick 1-Pull Breaststroke', 'Pull Buoy Breaststroke'],
+    videoUrl: undefined,
   },
   {
     stroke: 'Butterfly',
@@ -122,6 +160,17 @@ export const strokeGuides: StrokeGuide[] = [
       'Breathe forward, not upward. Your chin should barely clear the water surface. Lift your head too high and your hips drop, killing the body wave. Most swimmers breathe every 2 strokes in training; breathing every stroke causes a head-lift that collapses the rhythm.',
     whyItMatters:
       'Butterfly builds more shoulder strength and core stability than any other stroke. Even swimming it in short sets — 25m at a time — transfers directly to power and coordination in freestyle.',
+    beginnerPriority:
+      'Learn this last — and it is completely optional for fitness swimmers. Butterfly is not required for general pool swimming, and many experienced swimmers never develop it. If you want to try it, master the dolphin kick first (using fins helps enormously), then add the arms.',
+    sequence: [
+      'Entry — both hands enter shoulder-width apart, fingertips first, elbows slightly bent.',
+      'First kick — a downward dolphin kick fires as the hands enter, driving the chest down.',
+      'Catch — hands sweep outward, then bend the elbow to grip the water.',
+      'Pull — forearms sweep back powerfully inside shoulder-width toward the hips.',
+      'Breathe — chin skims forward just above the surface as hands push past the hips.',
+      'Second kick — fires as hands exit the water near the hips, driving the body forward.',
+      'Recovery — arms swing forward low over the water, entering for the next stroke.',
+    ],
     tips: [
       'Two kicks per arm cycle: one as hands enter the water, one as they exit.',
       'Initiate the undulation from your chest, not your head or hips.',
@@ -147,69 +196,121 @@ export const strokeGuides: StrokeGuide[] = [
       { phrase: 'Hand pitch', meaning: 'The angle of your hand during entry — thumbs slightly down for a clean, bubbleless entry.' },
     ],
     drills: ['Body Dolphin', 'Kick on Back Butterfly', 'One-Arm Butterfly', 'Underwater Dolphin Kick'],
+    videoUrl: undefined,
   },
 ]
 
+// ─── Glossary ─────────────────────────────────────────────────────────────────
+
+export type GlossaryCategory = 'technique' | 'training' | 'equipment' | 'pool' | 'racing' | 'people'
+
 export interface GlossaryTerm {
+  id: string
   term: string
   definition: string
+  category: GlossaryCategory
 }
 
 export const glossary: GlossaryTerm[] = [
-  { term: 'Aerobic', definition: 'Training that uses oxygen to produce energy. Aerobic swimming — sustained, controlled effort — builds the engine that lets you swim longer and recover faster between hard efforts.' },
-  { term: 'Anaerobic', definition: 'High-intensity effort that outpaces your oxygen supply. Sprinting is anaerobic. You accumulate lactic acid quickly, which is why sprints are kept short.' },
-  { term: 'Bilateral breathing', definition: 'Breathing to both sides, usually every 3 strokes in freestyle. It balances your stroke symmetry and prevents over-rotation to one preferred side.' },
-  { term: 'Black line', definition: 'The dark line on the pool floor running down the centre of each lane. Follow it to swim straight.' },
-  { term: 'Block', definition: 'The starting platform at the deep end of the pool that you dive from at the start of a race. Also called a starting block.' },
-  { term: 'Broken swim', definition: 'A race-distance swim split into sections with brief rests. "200 broken at 100" means swim 100m, rest 10 seconds, swim the remaining 100m.' },
-  { term: 'Catch', definition: 'The moment your hand grabs the water at the start of a pull and you feel resistance. A strong catch is the foundation of an efficient stroke.' },
-  { term: 'Churning', definition: 'An inefficient kick that creates lots of splash but moves you nowhere — usually caused by kicking from the knee, crossing the feet, or stiff ankles.' },
-  { term: 'Cool-down', definition: 'Easy swimming at the end of a session to bring your heart rate down and flush lactic acid.' },
-  { term: 'CSS (Critical Swim Speed)', definition: 'Your aerobic threshold pace per 100m, calculated from a 400m and a 200m time trial. Used to set interval training paces — the pace at which you build the most fitness.' },
-  { term: 'Descending', definition: 'A set where each rep is faster than the last. "4 × 100m descending" means rep 4 should be your fastest.' },
-  { term: 'Dolphin kick', definition: 'Both legs kicking together in a wave, used in butterfly and during underwaters after a push-off.' },
-  { term: 'DPS (Distance Per Stroke)', definition: 'How far you travel per complete arm cycle. Improving DPS means fewer strokes and less wasted energy across the pool.' },
-  { term: 'Drag suit', definition: 'An oversized baggy swimsuit worn over your regular costume in training to increase water resistance. On race day when you remove it, you feel noticeably faster.' },
-  { term: 'Drill', definition: 'A focused exercise that isolates one part of a stroke to improve it. Most drills are done slowly — the point is awareness, not speed.' },
-  { term: 'Drop-off', definition: 'When your pace deteriorates significantly in the later part of a set or race, usually from going out too hard in the first half.' },
-  { term: 'FINA', definition: 'The former name of swimming\'s international governing body, now known as World Aquatics (since 2022). Sets the rules for legal strokes, turns, and competition equipment.' },
-  { term: 'Flags', definition: 'Coloured pennants strung across the pool 5m from each wall. On backstroke, they signal the wall is coming so you can count strokes rather than looking over your shoulder.' },
-  { term: 'Flip turn', definition: 'A somersault turn at the wall used in freestyle and backstroke. Also called a tumble turn. Significantly faster than an open turn once mastered.' },
-  { term: 'Flutter kick', definition: 'The alternating up-down leg kick used in freestyle and backstroke. Each leg kicks independently, driven from the hip with a loose, floppy ankle.' },
-  { term: 'Glide', definition: 'A streamlined pause where you stretch and let momentum carry you — most visible in breaststroke after each kick.' },
-  { term: 'Hypoxic', definition: 'Training that restricts how often you breathe — e.g. every 5 or 7 strokes instead of every 3. Builds CO2 tolerance and improves breath control under pressure.' },
-  { term: 'IM (Individual Medley)', definition: 'A race or set swum in all four strokes in order: butterfly, backstroke, breaststroke, freestyle. Common distances are 100m, 200m, and 400m.' },
-  { term: 'Interval', definition: 'The total time given for one swim plus its rest period. "On 1:30" means you start each rep every 1 minute 30 seconds.' },
-  { term: 'Kickboard', definition: 'A foam float you hold in front of you to isolate and train your kick without worrying about your arms.' },
-  { term: 'Lactate threshold', definition: 'The effort level where lactic acid accumulates faster than your body can clear it. Training at CSS sits just below this threshold — the most productive place to build fitness.' },
-  { term: 'Lane rope', definition: 'The floating dividers between lanes that absorb wave turbulence and keep swimmers separated. Touching them in a race is not a disqualification, but using them to rest is.' },
-  { term: 'Lap', definition: 'One length of the pool (though some clubs define it as two lengths — always check locally).' },
-  { term: 'Negative split', definition: 'Swimming the second half of a race or set faster than the first half — a sign of smart pacing and controlled early effort.' },
-  { term: 'On the top', definition: 'Starting each rep when the pace clock hits :00 (the top of the minute).' },
-  { term: 'Open turn', definition: 'A turn where you touch the wall with your hands and spin around without somersaulting — required in breaststroke and butterfly. Slower than a tumble turn.' },
-  { term: 'Pace clock', definition: 'The large clock on the pool wall with a sweeping red hand that completes one revolution every 60 seconds. You use it to time intervals and measure send-off times.' },
-  { term: 'PB (Personal Best)', definition: 'Your fastest ever time for a specific event and distance. The most meaningful number in competitive swimming.' },
-  { term: 'Pull buoy', definition: 'A figure-8 float held between the thighs to keep your hips up and isolate the arm stroke.' },
-  { term: 'Pull phase', definition: 'The underwater portion of your arm stroke, from the catch (when your hand grabs water) to the finish (when your hand exits near your hip).' },
-  { term: 'Race pace', definition: 'The speed you would need to sustain to hit your goal time in a race. Training at race pace in short reps teaches your body to hold that speed under pressure.' },
-  { term: 'Recovery (stroke)', definition: 'The part of the stroke where your arm travels back over the water to the start position — not generating propulsion.' },
-  { term: 'Rest interval', definition: 'The gap between repetitions — either a fixed time ("take 20 seconds rest") or calculated from your send-off time.' },
-  { term: 'Send-off', definition: 'The total time for one rep plus its rest. A "1:30 send-off" means you push off every 1 min 30 s, regardless of when you arrived at the wall.' },
-  { term: 'Set', definition: 'A group of swims with a shared purpose, e.g. "8 × 50m" is a set of eight 50m swims.' },
-  { term: 'Streamline', definition: 'The tight, arrow-like shape you hold off the wall — arms locked overhead, head neutral, core braced — to minimise drag.' },
-  { term: 'Stroke rate', definition: 'How many complete arm cycles you take per minute. Higher stroke rate often means faster swimming, but only if each stroke still covers good distance.' },
-  { term: 'SWOLF', definition: 'Stroke count + time for one length, added together. A SWOLF of 50 means you swam 25m in 30 seconds taking 20 strokes. Lower is better.' },
-  { term: 'T-bar', definition: 'The short perpendicular bar painted on the pool floor near each wall. It signals the wall is approaching — useful for timing your tumble turn.' },
-  { term: 'Taper', definition: 'Reducing training volume and intensity in the weeks before a big competition to let your body fully recover and peak.' },
-  { term: 'Touch pad', definition: 'The electronic sensor board at the end of each lane that records your finish time. Breaststroke and butterfly require a simultaneous two-hand touch; freestyle and backstroke need only one.' },
-  { term: 'Tumble turn', definition: 'The forward somersault turn used in freestyle and backstroke — you flip at the wall and push off on your back or side. Significantly faster than an open turn once drilled.' },
-  { term: 'Underwaters', definition: 'The streamlined dolphin-kick phase after a push-off or dive, before you surface. Elite swimmers cover 10-15m underwater; it is often the fastest part of a race.' },
-  { term: 'Volume', definition: 'The total distance swum in a session, week, or training block. Increasing volume gradually builds aerobic capacity.' },
-  { term: 'Warm-down', definition: 'Easy swimming at the end of a session to bring your heart rate down gradually and flush lactic acid. Same as cool-down.' },
-  { term: 'Warm-up', definition: 'Easy swimming at the start of a session to prepare your body, elevate your heart rate, and rehearse technique before the main set.' },
-  { term: 'Wetsuit', definition: 'A neoprene suit worn in open-water swimming for buoyancy and warmth. Legal in open-water races below a temperature threshold, banned in pool competition.' },
-  { term: 'Whip kick', definition: 'The breaststroke kick — heels draw up toward the glutes, feet evert outward, then snap together in a circular motion to propel you forward.' },
-  { term: 'Zone 2', definition: 'Low-intensity aerobic effort (around 60-70% of max heart rate) where you can hold a conversation. Zone 2 training builds your aerobic base and fat metabolism — the foundation of endurance swimming.' },
+  { id: 'aerobic', term: 'Aerobic', definition: 'Training that uses oxygen to produce energy. Aerobic swimming — sustained, controlled effort — builds the engine that lets you swim longer and recover faster between hard efforts.', category: 'training' },
+  { id: 'anaerobic', term: 'Anaerobic', definition: 'High-intensity effort that outpaces your oxygen supply. Sprinting is anaerobic. You accumulate lactic acid quickly, which is why sprints are kept short.', category: 'training' },
+  { id: 'band', term: 'Band', definition: 'A rubber band worn around the ankles to prevent kicking. Forces you to swim using only your arms, exposing weaknesses in your pull and body position. Challenging — approach gradually.', category: 'equipment' },
+  { id: 'base-training', term: 'Base training', definition: 'High-volume, low-intensity training that builds your aerobic foundation. Most of a long-term training block is base work — it is what makes threshold and speed sessions possible.', category: 'training' },
+  { id: 'best-average', term: 'Best average', definition: 'The average time of your best consecutive repetitions in a set. "Best average 5 × 100m" means your coach wants you to hold your fastest sustainable pace across all five reps.', category: 'training' },
+  { id: 'bilateral-breathing', term: 'Bilateral breathing', definition: 'Breathing to both sides, usually every 3 strokes in freestyle. It balances your stroke symmetry and prevents over-rotation to one preferred side.', category: 'technique' },
+  { id: 'black-line', term: 'Black line', definition: 'The dark line on the pool floor running down the centre of each lane. Follow it to swim straight.', category: 'pool' },
+  { id: 'block', term: 'Block', definition: 'The starting platform at the deep end of the pool that you dive from at the start of a race. Also called a starting block.', category: 'pool' },
+  { id: 'broken-swim', term: 'Broken swim', definition: 'A race-distance swim split into sections with brief rests. "200 broken at 100" means swim 100m, rest 10 seconds, swim the remaining 100m.', category: 'training' },
+  { id: 'build', term: 'Build', definition: 'A swim or set where effort increases progressively from easy to hard. "Build the last 25m" means go harder as you approach the wall.', category: 'training' },
+  { id: 'bulkhead', term: 'Bulkhead', definition: 'A movable wall that can divide a 50m pool into two 25m short-course pools. When the bulkhead is in, the effective pool length changes.', category: 'pool' },
+  { id: 'catch', term: 'Catch', definition: 'The moment your hand grabs the water at the start of a pull and you feel resistance. A strong catch is the foundation of an efficient stroke.', category: 'technique' },
+  { id: 'catch-up-drill', term: 'Catch-up drill', definition: 'A freestyle drill where one hand waits at full extension until the other hand arrives before beginning its recovery. Trains stroke timing and a long body line.', category: 'technique' },
+  { id: 'churning', term: 'Churning', definition: 'An inefficient kick that creates lots of splash but moves you nowhere — usually caused by kicking from the knee, crossing the feet, or stiff ankles.', category: 'technique' },
+  { id: 'circle-swimming', term: 'Circle swimming', definition: 'Lane protocol when there are two or more swimmers: keep to the left side of the lane, going up on the left and back on the right. The system that keeps everyone safe and moving.', category: 'pool' },
+  { id: 'cool-down', term: 'Cool-down', definition: 'Easy swimming at the end of a session to bring your heart rate down and flush lactic acid.', category: 'training' },
+  { id: 'css', term: 'CSS (Critical Swim Speed)', definition: 'Your aerobic threshold pace per 100m, calculated from a 400m and a 200m time trial. Used to set interval training paces — the pace at which you build the most fitness.', category: 'training' },
+  { id: 'deck', term: 'Deck', definition: 'The poolside surface — the wet walkway area surrounding the pool. Walk, do not run, on the deck.', category: 'pool' },
+  { id: 'descending', term: 'Descending', definition: 'A set where each rep is faster than the last. "4 × 100m descending" means rep 4 should be your fastest.', category: 'training' },
+  { id: 'dolphin-kick', term: 'Dolphin kick', definition: 'Both legs kicking together in a wave, used in butterfly and during underwaters after a push-off.', category: 'technique' },
+  { id: 'dps', term: 'DPS (Distance Per Stroke)', definition: 'How far you travel per complete arm cycle. Improving DPS means fewer strokes and less wasted energy across the pool.', category: 'technique' },
+  { id: 'drag-suit', term: 'Drag suit', definition: 'An oversized baggy swimsuit worn over your regular costume in training to increase water resistance. On race day when you remove it, you feel noticeably faster.', category: 'equipment' },
+  { id: 'drill', term: 'Drill', definition: 'A focused exercise that isolates one part of a stroke to improve it. Most drills are done slowly — the point is awareness, not speed.', category: 'technique' },
+  { id: 'drop-off', term: 'Drop-off', definition: 'When your pace deteriorates significantly in the later part of a set or race, usually from going out too hard in the first half.', category: 'training' },
+  { id: 'dryland', term: 'Dryland', definition: 'Training done outside the pool — resistance bands, gym work, core exercises, stretching. Complements pool work but does not replace it.', category: 'training' },
+  { id: 'dq', term: 'DQ (Disqualification)', definition: 'Disqualification for a rules infraction — a stroke technique violation, a missed wall touch, or an illegal start. A DQ in training means nothing. A DQ in competition means your time does not count.', category: 'racing' },
+  { id: 'evf', term: 'EVF (Early Vertical Forearm)', definition: 'Bending the elbow immediately as your hand enters the water in freestyle, so your forearm faces backward — your maximum surface area for pulling. The single most impactful technique improvement for most adult swimmers.', category: 'technique' },
+  { id: 'false-start', term: 'False start', definition: 'Moving after the starter\'s "take your marks" command but before the starting signal. Results in disqualification in competition.', category: 'racing' },
+  { id: 'fartlek', term: 'Fartlek', definition: 'Unstructured pace variation within a continuous swim — surge hard for 5 strokes, ease off, surge again. Borrowed from running training. Good for breaking monotony and teaching pace awareness.', category: 'training' },
+  { id: 'flags', term: 'Flags', definition: 'Coloured pennants strung across the pool 5m from each wall. On backstroke, they signal the wall is coming so you can count strokes rather than looking over your shoulder.', category: 'pool' },
+  { id: 'flip-turn', term: 'Flip turn', definition: 'A somersault turn at the wall used in freestyle and backstroke. Also called a tumble turn. Significantly faster than an open turn once mastered.', category: 'technique' },
+  { id: 'flutter-kick', term: 'Flutter kick', definition: 'The alternating up-down leg kick used in freestyle and backstroke. Each leg kicks independently, driven from the hip with a loose, floppy ankle.', category: 'technique' },
+  { id: 'glide', term: 'Glide', definition: 'A streamlined pause where you stretch and let momentum carry you — most visible in breaststroke after each kick.', category: 'technique' },
+  { id: 'gutter', term: 'Gutter', definition: 'The channel running around the edge of the pool that collects overflow water. Touching the gutter is not a legal wall touch in competition.', category: 'pool' },
+  { id: 'heat', term: 'Heat', definition: 'A division of a competitive race when too many swimmers enter for one go. Swimmers are seeded into heats by time, with the fastest going last.', category: 'racing' },
+  { id: 'hypoxic', term: 'Hypoxic', definition: 'Training that restricts how often you breathe — e.g. every 5 or 7 strokes instead of every 3. Builds CO₂ tolerance and improves breath control under pressure.', category: 'training' },
+  { id: 'im', term: 'IM (Individual Medley)', definition: 'A race or set swum in all four strokes in order: butterfly, backstroke, breaststroke, freestyle. Common distances are 100m, 200m, and 400m.', category: 'racing' },
+  { id: 'interval', term: 'Interval', definition: 'The total time given for one swim plus its rest period. "On 1:30" means you start each rep every 1 minute 30 seconds.', category: 'training' },
+  { id: 'jammers', term: 'Jammers', definition: 'Knee-length competitive swimwear for men, covering from the waist to just above the knee. The standard for training and competition. Much faster than boardshorts due to compression and reduced drag.', category: 'equipment' },
+  { id: 'kick-set', term: 'Kick set', definition: 'A training set done holding a kickboard, isolating the leg kick. Builds leg strength and technique independently from the arms.', category: 'training' },
+  { id: 'kickboard', term: 'Kickboard', definition: 'A foam float you hold in front of you to isolate and train your kick without worrying about your arms.', category: 'equipment' },
+  { id: 'ladder', term: 'Ladder', definition: 'A set that ascends (or descends) in distance: e.g. 50m, 100m, 150m, 200m, 150m, 100m, 50m. Tests pacing and builds endurance progressively.', category: 'training' },
+  { id: 'lactate-threshold', term: 'Lactate threshold', definition: 'The effort level where lactic acid accumulates faster than your body can clear it. Training at CSS sits just below this threshold — the most productive place to build fitness.', category: 'training' },
+  { id: 'lane-assignment', term: 'Lane assignment', definition: 'In competition, swimmers are placed in lanes based on their seed time. The fastest swimmers typically go in the middle lanes (less turbulence from the wall).', category: 'racing' },
+  { id: 'lane-rope', term: 'Lane rope', definition: 'The floating dividers between lanes that absorb wave turbulence and keep swimmers separated. Touching them in a race is not a disqualification, but using them to rest is.', category: 'pool' },
+  { id: 'lap', term: 'Lap', definition: 'One length of the pool (though some clubs define it as two lengths — always check locally).', category: 'pool' },
+  { id: 'lcm', term: 'LCM (Long Course Metres)', definition: 'A 50-metre pool — the Olympic standard. Times in long course are slower than short course because there are fewer turns per kilometre.', category: 'pool' },
+  { id: 'legal-stroke', term: 'Legal stroke', definition: 'A stroke swum according to competition rules. Each stroke has specific requirements (e.g. two-hand touch in breaststroke, simultaneous arm pull in butterfly). Breaking these results in a DQ.', category: 'racing' },
+  { id: 'main-set', term: 'Main set', definition: 'The core training block of a session — the highest intensity or most technical part, done after the warm-up. Everything else supports it.', category: 'training' },
+  { id: 'medley', term: 'Medley', definition: 'All four strokes in order: butterfly, backstroke, breaststroke, freestyle. Used in both individual races (IM) and relay events (medley relay, where each swimmer swims one stroke).', category: 'racing' },
+  { id: 'negative-split', term: 'Negative split', definition: 'Swimming the second half of a race or set faster than the first half — a sign of smart pacing and controlled early effort.', category: 'training' },
+  { id: 'on-the-top', term: 'On the top', definition: 'Starting each rep when the pace clock hits :00 (the top of the minute).', category: 'training' },
+  { id: 'open-turn', term: 'Open turn', definition: 'A turn where you touch the wall with your hands and spin around without somersaulting — required in breaststroke and butterfly. Slower than a tumble turn.', category: 'technique' },
+  { id: 'open-water', term: 'Open water', definition: 'Swimming in a natural body of water — sea, lake, or river — rather than a pool. Requires sighting, wetsuit awareness, and different navigation skills.', category: 'training' },
+  { id: 'pace-clock', term: 'Pace clock', definition: 'The large clock on the pool wall with a sweeping red hand that completes one revolution every 60 seconds. You use it to time intervals and measure send-off times.', category: 'pool' },
+  { id: 'pacing', term: 'Pacing', definition: 'Managing your effort so you have enough left for the end. Going out too hard is the most common mistake; pacing is the skill of starting a fraction slower than your target to hold it or build.', category: 'training' },
+  { id: 'pb', term: 'PB (Personal Best)', definition: 'Your fastest ever time for a specific event and distance. The most meaningful number in competitive swimming.', category: 'racing' },
+  { id: 'pull-buoy', term: 'Pull buoy', definition: 'A figure-8 float held between the thighs to keep your hips up and isolate the arm stroke.', category: 'equipment' },
+  { id: 'pull-phase', term: 'Pull phase', definition: 'The underwater portion of your arm stroke, from the catch (when your hand grabs water) to the finish (when your hand exits near your hip).', category: 'technique' },
+  { id: 'pull-set', term: 'Pull set', definition: 'A training set done with a pull buoy between your thighs. Isolates the arms, builds catch and pull strength, and temporarily gives you a better body position by keeping hips afloat.', category: 'training' },
+  { id: 'push-off', term: 'Push-off', definition: 'The streamlined launch from the wall after a turn or start — arms squeezed overhead, core braced, feet driving powerfully. The fastest moment in pool swimming.', category: 'technique' },
+  { id: 'pyramid', term: 'Pyramid', definition: 'A training set that builds up to a peak then comes back down: e.g. 50m, 100m, 150m, 200m, 150m, 100m, 50m. Teaches progressive pacing and sustained effort.', category: 'training' },
+  { id: 'race-pace', term: 'Race pace', definition: 'The speed you would need to sustain to hit your goal time in a race. Training at race pace in short reps teaches your body to hold that speed under pressure.', category: 'racing' },
+  { id: 'recovery-stroke', term: 'Recovery (stroke)', definition: 'The part of the stroke where your arm travels back over the water to the start position — not generating propulsion.', category: 'technique' },
+  { id: 'recovery-swim', term: 'Recovery swim', definition: 'An easy swim done the day after a hard session to flush lactic acid and keep blood moving to tired muscles. Should feel almost effortless.', category: 'training' },
+  { id: 'relay-takeover', term: 'Relay takeover', definition: 'The exchange between relay swimmers — the incoming swimmer must touch the wall before the outgoing swimmer\'s feet leave the block. A takeover that is too early results in disqualification.', category: 'racing' },
+  { id: 'rest-interval', term: 'Rest interval', definition: 'The gap between repetitions — either a fixed time ("take 20 seconds rest") or calculated from your send-off time.', category: 'training' },
+  { id: 'rotation', term: 'Rotation', definition: 'The side-to-side rolling of the body around its long axis in freestyle and backstroke. Not just a technique detail — rotation is what connects the power of your large back muscles to each pull.', category: 'technique' },
+  { id: 'sculling', term: 'Sculling', definition: 'Small, precise figure-8 hand movements that generate lift through the water — the same principle as a propeller. Sculling drills develop your feel for the water and improve your catch.', category: 'technique' },
+  { id: 'scm', term: 'SCM (Short Course Metres)', definition: 'A 25-metre pool — the most common training and competition pool length. Times are faster than long course because turns add speed.', category: 'pool' },
+  { id: 'scy', term: 'SCY (Short Course Yards)', definition: 'A 25-yard pool, standard in the United States. Times are not directly comparable to SCM or LCM times due to the different pool length.', category: 'pool' },
+  { id: 'seeding', term: 'Seeding', definition: 'How swimmers are placed in heats and lanes for competition based on their qualifying or entry times. Fastest seeds go in the middle of the fastest heat.', category: 'racing' },
+  { id: 'send-off', term: 'Send-off', definition: 'The total time for one rep plus its rest. A "1:30 send-off" means you push off every 1 min 30 s, regardless of when you arrived at the wall.', category: 'training' },
+  { id: 'set', term: 'Set', definition: 'A group of swims with a shared purpose, e.g. "8 × 50m" is a set of eight 50m swims.', category: 'training' },
+  { id: 'sighting', term: 'Sighting', definition: 'Lifting your eyes just above the waterline in open-water swimming to check your direction. Done every 6–10 strokes. Lifting too high breaks body position, so keep it minimal.', category: 'technique' },
+  { id: 'six-beat-kick', term: 'Six-beat kick', definition: 'Six leg kicks per arm cycle — three per arm pull — the standard kick pattern in freestyle racing. Higher-tempo and more demanding than a two-beat kick.', category: 'technique' },
+  { id: 'split', term: 'Split', definition: 'The recorded time for a portion of a race or set — e.g. your 50m split in a 100m race. Splits reveal your pacing pattern and show whether you went out too hard or came home too fast.', category: 'racing' },
+  { id: 'streamline', term: 'Streamline', definition: 'The tight, arrow-like shape you hold off the wall — arms locked overhead, head neutral, core braced — to minimise drag.', category: 'technique' },
+  { id: 'stroke-count', term: 'Stroke count', definition: 'How many arm strokes you take per length. Knowing your stroke count helps you track technique: if it rises under fatigue, your efficiency is dropping.', category: 'technique' },
+  { id: 'stroke-rate', term: 'Stroke rate', definition: 'How many complete arm cycles you take per minute. Higher stroke rate often means faster swimming, but only if each stroke still covers good distance.', category: 'technique' },
+  { id: 'swolf', term: 'SWOLF', definition: 'Stroke count + time for one length, added together. A SWOLF of 50 means you swam 25m in 30 seconds taking 20 strokes. Lower is better.', category: 'technique' },
+  { id: 't-bar', term: 'T-bar', definition: 'The short perpendicular bar painted on the pool floor near each wall. It signals the wall is approaching — useful for timing your tumble turn.', category: 'pool' },
+  { id: 'taper', term: 'Taper', definition: 'Reducing training volume and intensity in the weeks before a big competition to let your body fully recover and peak.', category: 'training' },
+  { id: 'tech-suit', term: 'Tech suit', definition: 'A competition-grade performance swimsuit with rigid panels, compression, and water-repellent material. Provides buoyancy and drag reduction. Expensive and not for training — save it for race day.', category: 'equipment' },
+  { id: 'tempo-trainer', term: 'Tempo trainer', definition: 'A small waterproof metronome (often worn under a swim cap) that beeps at a set rate. Used to train stroke rate — the beep tells you when each arm should enter the water.', category: 'equipment' },
+  { id: 'threshold-pace', term: 'Threshold pace', definition: 'The effort level at which lactic acid accumulates as fast as your body clears it — the tipping point between sustainable and unsustainable effort. CSS sits right at this point. Training here produces the greatest aerobic fitness gains.', category: 'training' },
+  { id: 'touch-pad', term: 'Touch pad', definition: 'The electronic sensor board at the end of each lane that records your finish time. Breaststroke and butterfly require a simultaneous two-hand touch; freestyle and backstroke need only one.', category: 'pool' },
+  { id: 'touch-turn', term: 'Touch turn', definition: 'The open turn used in breaststroke and butterfly, where both hands must touch the wall simultaneously before you push off. Required by competition rules.', category: 'technique' },
+  { id: 't-pace', term: 'T-pace', definition: 'Short for threshold pace — your CSS pace. The pace at which you train for maximum aerobic development. Used interchangeably with CSS in some coaching programmes.', category: 'training' },
+  { id: 'tumble-turn', term: 'Tumble turn', definition: 'The forward somersault turn used in freestyle and backstroke — you flip at the wall and push off on your back or side. Significantly faster than an open turn once drilled.', category: 'technique' },
+  { id: 'two-beat-kick', term: 'Two-beat kick', definition: 'Two leg kicks per arm cycle — one per arm pull — a relaxed, energy-efficient kick used by distance swimmers and in training. Lets you save your legs for the pull.', category: 'technique' },
+  { id: 'underwaters', term: 'Underwaters', definition: 'The streamlined dolphin-kick phase after a push-off or dive, before you surface. Elite swimmers cover 10–15m underwater; it is often the fastest part of a race.', category: 'technique' },
+  { id: 'volume', term: 'Volume', definition: 'The total distance swum in a session, week, or training block. Increasing volume gradually builds aerobic capacity.', category: 'training' },
+  { id: 'warm-down', term: 'Warm-down', definition: 'Easy swimming at the end of a session to bring your heart rate down gradually and flush lactic acid. Same as cool-down.', category: 'training' },
+  { id: 'warm-up', term: 'Warm-up', definition: 'Easy swimming at the start of a session to prepare your body, elevate your heart rate, and rehearse technique before the main set.', category: 'training' },
+  { id: 'wetsuit', term: 'Wetsuit', definition: 'A neoprene suit worn in open-water swimming for buoyancy and warmth. Legal in open-water races below a temperature threshold, banned in pool competition.', category: 'equipment' },
+  { id: 'whip-kick', term: 'Whip kick', definition: 'The breaststroke kick — heels draw up toward the glutes, feet evert outward, then snap together in a circular motion to propel you forward.', category: 'technique' },
+  { id: 'world-aquatics', term: 'World Aquatics', definition: 'The international governing body for competitive swimming (formerly FINA, renamed 2022). Sets the rules for legal strokes, turns, and competition equipment across all aquatic sports.', category: 'people' },
+  { id: 'zone-2', term: 'Zone 2', definition: 'Low-intensity aerobic effort (around 60–70% of max heart rate) where you can hold a conversation. Zone 2 training builds your aerobic base and fat metabolism — the foundation of endurance swimming.', category: 'training' },
 ]
 
 // ─── Pool Guide ───────────────────────────────────────────────────────────────
@@ -291,6 +392,13 @@ export const equipment: EquipmentItem[] = [
     essential: true,
     what: 'A swimsuit designed for pool training — minimal drag, chlorine-resistant material. Competitive swimmers wear costumes (women) or jammers (men) rather than casual boardshorts.',
     when: 'Every session. Invest in a decent chlorine-resistant suit — it will last far longer than a fashion one.',
+  },
+  {
+    name: 'Towel + flip flops',
+    emoji: '🧴',
+    essential: true,
+    what: 'A large towel for after your swim, and flip flops (thongs/pool shoes) for the changing rooms and poolside.',
+    when: 'Every session. Flip flops protect your feet from the warm, wet surfaces in changing rooms. Pack your wet kit in a separate plastic bag so it doesn\'t soak everything else.',
   },
   {
     name: 'Kickboard',
@@ -424,7 +532,7 @@ export const trainingFacts: TrainingFact[] = [
   },
 ]
 
-// ─── Fitness program — 8 weeks, 20 sessions ──────────────────────────────────
+// ─── Fitness program — Weeks 0–8 ──────────────────────────────────────────────
 
 export interface FitnessSession {
   title: string
@@ -437,13 +545,44 @@ export interface FitnessSession {
 export interface FitnessProgramWeek {
   week: number
   focus: string
+  readiness: string
   sessions: FitnessSession[]
 }
 
 export const fitnessProgram: FitnessProgramWeek[] = [
   {
+    week: 0,
+    focus: 'Water confidence — before the program proper',
+    readiness: "You're ready for this week if you are comfortable standing in chest-deep water but can't yet swim a full 25m length. If you can already swim one length, skip straight to Week 1.",
+    sessions: [
+      {
+        title: 'Session 0-A — Getting comfortable',
+        totalDistance: 'No counting — just time',
+        effortSummary: 'All about comfort, not fitness.',
+        blocks: [
+          { label: 'Stage 1', content: 'Stand in chest-deep water at the shallow end. Walk slowly from one side to the other 4 times. Try bobbing: bend your knees so your shoulders go under, stand back up. Repeat 10 times.', effort: 'easy' },
+          { label: 'Stage 2', content: 'Hold the wall and put your face in the water. Breathe out through your nose and mouth — make bubbles. Lift your head, inhale. Repeat 10 times until it feels routine.', effort: 'easy' },
+          { label: 'Stage 3', content: 'Push off the wall gently with your feet, arms extended in front, face down. Try to glide as far as you can. Stand when you need to. Repeat 6 times.', effort: 'easy' },
+        ],
+        coachNote: "This session is not about distance or fitness. It's about your nervous system becoming familiar with the water. Everything uncomfortable about swimming — the water on your face, the bubbles, the loss of footing — becomes easier simply through repetition. There is no failing here.",
+      },
+      {
+        title: 'Session 0-B — Your first length attempt',
+        totalDistance: '25–100m (however far you get)',
+        effortSummary: 'As easy as you can — stopping is fine.',
+        blocks: [
+          { label: 'Stage 1', content: 'Push and glide from the wall 4 times. Add a gentle kick each time — loose ankles, not a bicycle pedal.', effort: 'easy' },
+          { label: 'Stage 2', content: 'Try to swim from the wall to the other end. Stop and hold the wall whenever you need to. Count how many stops you take — that number will shrink.', effort: 'easy' },
+          { label: 'Stage 3', content: 'If you made it across, rest for 2 minutes, then try again. Three attempts is plenty for one session.', effort: 'easy' },
+        ],
+        coachNote: "Slow is completely fine. Stopping at the wall to celebrate is mandatory. If you made it across the pool without stopping — even once — you are a swimmer. The rest is just repetition.",
+      },
+    ],
+  },
+  {
     week: 1,
     focus: 'Building a repeatable session structure',
+    readiness: "You're ready for this week if you can swim at least one 25m length without stopping — even if it's slow and your technique is rough. If you can't yet do that, start with Week 0.",
     sessions: [
       {
         title: 'Session 1 — Find your rhythm',
@@ -472,6 +611,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 2,
     focus: 'Introducing intervals',
+    readiness: "You're ready for this week if you can swim 200m continuously (8 lengths of a 25m pool), even with rests between lengths. You should be comfortable putting your face in the water every stroke.",
     sessions: [
       {
         title: 'Session 3 — Your first interval set',
@@ -500,6 +640,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 3,
     focus: 'Building volume and pace awareness',
+    readiness: "You're ready for this week if you can complete 10 × 50m on a 1:30 send-off comfortably — arriving at the wall with at least 15 seconds to rest each time.",
     sessions: [
       {
         title: 'Session 5 — Mixed intensity',
@@ -528,6 +669,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 4,
     focus: 'Your first proper training week',
+    readiness: "You're ready for this week if you've completed your 400m time trial and have a rough idea of your CSS pace. You should be able to swim 4 × 100m without the last rep falling apart.",
     sessions: [
       {
         title: 'Session 7 — CSS pace work',
@@ -549,13 +691,14 @@ export const fitnessProgram: FitnessProgramWeek[] = [
           { label: 'Main set', content: '1,000m continuous at easy pace. No stopping. If you need to slow down, slow down — but keep moving. Note your time.', effort: 'easy' },
           { label: 'Cool-down', content: '4 × 50m very easy.', effort: 'easy' },
         ],
-        coachNote: "1,000m continuous is a real milestone. If you can do this by the end of week 4, you're a swimmer. From here the question is pace, not distance.",
+        coachNote: "1,000m continuous is a real milestone. If you can do this by the end of Week 4, you're a swimmer. From here the question is pace, not distance.",
       },
     ],
   },
   {
     week: 5,
     focus: 'Adding intensity — first CSS intervals',
+    readiness: "You're ready for this week if you can swim 1,000m continuously and hold your CSS pace for 8 × 100m. Repeating Week 4 once is absolutely fine — consistency beats progression every time.",
     sessions: [
       {
         title: 'Session 9 — CSS pyramid',
@@ -574,7 +717,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
         effortSummary: 'Threshold main set + short sprints.',
         blocks: [
           { label: 'Warm-up', content: '400m easy mixed (free, back, kick as you like).', effort: 'easy' },
-          { label: 'Main set', content: '5 × 100m descending (each rep 2-3s faster than the last), rest 40s. Then 6 × 25m sprint (rest 30s).', effort: 'threshold' },
+          { label: 'Main set', content: '5 × 100m descending (each rep 2–3s faster than the last), rest 40s. Then 6 × 25m sprint (rest 30s).', effort: 'threshold' },
           { label: 'Cool-down', content: '100m easy.', effort: 'easy' },
         ],
         coachNote: 'Descending sets are about controlled acceleration — not going flat out on rep 1. If rep 5 falls off, you started too fast.',
@@ -595,6 +738,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 6,
     focus: 'Building on CSS foundations',
+    readiness: "You're ready for this week if you've completed the Week 5 pyramid session and can hold CSS pace for 200m at a time. If the 200m rep in the pyramid felt impossible, repeat Week 5 first.",
     sessions: [
       {
         title: 'Session 12 — 200m repeats',
@@ -605,7 +749,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
           { label: 'Main set', content: '5 × 200m at CSS pace with 30s rest. Focus on even splits — aim for the same time on every rep.', effort: 'threshold' },
           { label: 'Cool-down', content: '200m very easy.', effort: 'easy' },
         ],
-        coachNote: 'By now you should have a CSS pace from your week 3 time trial. Use it. 200m reps at CSS are the single most effective set for building aerobic fitness in the pool.',
+        coachNote: 'By now you should have a CSS pace from your Week 3 time trial. Use it. 200m reps at CSS are the single most effective set for building aerobic fitness in the pool.',
       },
       {
         title: 'Session 13 — Broken swims',
@@ -634,6 +778,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 7,
     focus: 'Threshold loading — your hardest week',
+    readiness: "You're ready for this week if you can hold your CSS pace for 5 × 200m. This is a hard week — if you're still building, repeating Week 6 is training, not failure.",
     sessions: [
       {
         title: 'Session 15 — Long CSS set',
@@ -641,7 +786,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
         effortSummary: 'Sustained threshold work.',
         blocks: [
           { label: 'Warm-up', content: '400m easy. 4 × 50m at CSS (rest 20s).', effort: 'easy' },
-          { label: 'Main set', content: '10 × 100m at CSS pace, rest 20s. This is the same as your week 4 session — compare your times.', effort: 'threshold' },
+          { label: 'Main set', content: '10 × 100m at CSS pace, rest 20s. This is the same as your Week 4 session — compare your times.', effort: 'threshold' },
           { label: 'Cool-down', content: '4 × 50m easy. Very relaxed.', effort: 'easy' },
         ],
         coachNote: 'This is the benchmark session. If you can hold your CSS pace for 10 × 100m with only 20s rest, you are training at a genuinely high level.',
@@ -652,7 +797,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
         effortSummary: 'Hard, fast, short.',
         blocks: [
           { label: 'Warm-up', content: '500m: 200m easy, 4 × 50m building, 4 × 25m at race pace.', effort: 'easy' },
-          { label: 'Main set', content: '10 × 50m at race pace (5-10s faster than CSS per 100m equivalent) with 30s rest. Every rep should feel like a fast race split.', effort: 'hard' },
+          { label: 'Main set', content: '10 × 50m at race pace (5–10s faster than CSS per 100m equivalent) with 30s rest. Every rep should feel like a fast race split.', effort: 'hard' },
           { label: 'Cool-down', content: '200m easy.', effort: 'easy' },
         ],
         coachNote: 'Race pace hurts more than threshold. It is supposed to. Each 50m should feel like the last 50m of a race you actually care about.',
@@ -673,6 +818,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
   {
     week: 8,
     focus: 'Consolidation and peak session',
+    readiness: "You're ready for this week if you've completed at least 14 of the 17 sessions in Weeks 1–7. This is your final week — enjoy it.",
     sessions: [
       {
         title: 'Session 18 — The 1,500m time trial',
@@ -691,7 +837,7 @@ export const fitnessProgram: FitnessProgramWeek[] = [
         effortSummary: 'Balanced session — a template to repeat.',
         blocks: [
           { label: 'Warm-up', content: '400m: 200m free easy, 4 × 50m alternating kick/pull.', effort: 'easy' },
-          { label: 'Main set', content: '6 × 200m on 3:30 (or on whatever send-off gives you 25-30s rest). Aim for even splits throughout.', effort: 'threshold' },
+          { label: 'Main set', content: '6 × 200m on 3:30 (or on whatever send-off gives you 25–30s rest). Aim for even splits throughout.', effort: 'threshold' },
           { label: 'Cool-down', content: '4 × 50m easy choice.', effort: 'easy' },
         ],
         coachNote: 'This session is repeatable indefinitely — just adjust the send-off as you get faster. Add 200m to the total each month and you have a training plan.',
@@ -702,16 +848,16 @@ export const fitnessProgram: FitnessProgramWeek[] = [
         effortSummary: 'High volume, mostly easy. Celebrate.',
         blocks: [
           { label: 'Warm-up', content: '600m easy: 200m each stroke or as freestyle and kick alternating.', effort: 'easy' },
-          { label: 'Main set', content: '1,500m continuous easy. No stopping. Same effort as week 4 session 8 — compare your feel vs. your time eight weeks ago.', effort: 'easy' },
+          { label: 'Main set', content: '1,500m continuous easy. No stopping. Same effort as Week 4 Session 8 — compare your feel vs. your time eight weeks ago.', effort: 'easy' },
           { label: 'Cool-down', content: '8 × 50m easy drill work — pick your favourite drills from the library.', effort: 'easy' },
         ],
-        coachNote: "You swam 400-600m in week 1. You just swam 2,500m. That's the program.",
+        coachNote: "You swam 400–600m in Week 1. You just swam 2,500m. That's the program.",
       },
     ],
   },
 ]
 
-// Legacy export kept for backward-compat with any remaining references
+// Legacy export — kept so existing component references do not break
 export interface ProgramWeek {
   week: number
   focus: string

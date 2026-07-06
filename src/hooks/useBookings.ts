@@ -55,15 +55,18 @@ export function useCreateBooking() {
     mutationFn: async ({
       swimmer_id,
       coach_id,
+      preferred_date,
       notes,
     }: {
       swimmer_id: string
       coach_id: string
+      preferred_date?: string | null
       notes?: string
     }) => {
       const { error } = await supabase.from('bookings').insert({
         swimmer_id,
         coach_id,
+        preferred_date: preferred_date ?? null,
         notes: notes ?? null,
       })
       if (error) throw error

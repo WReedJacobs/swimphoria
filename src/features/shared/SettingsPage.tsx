@@ -1,19 +1,32 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Save, Lock, LogOut, RefreshCw } from 'lucide-react'
+import { Save, Lock, LogOut, RefreshCw, Moon, Sun, Monitor, Download, Trash2, AtSign } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Avatar } from '@/components/ui/Avatar'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { Modal } from '@/components/ui/Modal'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
+import { useSwimmers } from '@/hooks/useSwimmers'
+import { useTheme, type Theme } from '@/hooks/useTheme'
+import { cn } from '@/lib/cn'
+
+const THEME_OPTIONS: Array<{ value: Theme; label: string; icon: typeof Moon }> = [
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'system', label: 'System', icon: Monitor },
+]
 
 export function SettingsPage() {
   const { profile, user, signOut, refreshProfile } = useAuth()
+  const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
 
+  // Profile
   const [name, setName] = useState(profile?.full_name ?? '')
+  const [handle, setHandle] = useState(profile?.display_handle ?? '')
   const storedAvatar = profile?.avatar_url ?? ''
   const [avatarUrl, setAvatarUrl] = useState(
     storedAvatar.startsWith('http') ? storedAvatar : '',
@@ -21,11 +34,21 @@ export function SettingsPage() {
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
+  // Password
   const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [pwSaving, setPwSaving] = useState(false)
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  // Role-switch guardrail
+  const { data: swimmers } = useSwimmers()
+  const [showRoleWarn, setShowRoleWarn] = useState(false)
+
+  // Account deletion
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deletePhrase, setDeletePhrase] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const saveProfile = async () => {
     if (!user) return
@@ -34,7 +57,11 @@ export function SettingsPage() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: name.trim(), avatar_url: avatarUrl.trim() || null })
+        .update({
+          full_name: name.trim(),
+          avatar_url: avatarUrl.trim() || null,
+          display_handle: handle.trim() || null,
+        })
         .eq('id', user.id)
       if (error) throw error
       await refreshProfile()
@@ -76,8 +103,103 @@ export function SettingsPage() {
     }
   }
 
+  const handleRoleChange = () => {
+    if (profile?.role === 'coach' && swimmers && swimmers.length > 0) {
+      setShowRoleWarn(true)
+    } else {
+      navigate('/role-select')
+    }
+  }
+
+  const exportData = async () => {
+    if (!user) return
+    const profileRes = await supabase.from('profiles').select('*').eq('id', user.id).single()
+
+    let timesData: unknown[] = []
+    let goalsData: unknown[] = []
+
+    if (profile?.role === 'swimmer') {
+      const { data: sw } = await supabase
+        .from('swimmers')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle()
+      if (sw) {
+        const [t, g] = await Promise.all([
+          supabase.from('times').select('*').eq('swimmer_id', sw.id),
+          supabase.from('goals').select('*').eq('swimmer_id', sw.id),
+        ])
+        timesData = t.data ?? []
+        goalsData = g.data ?? []
+      }
+    } else {
+      const [t, g] = await Promise.all([
+        supabase.from('times').select('*').eq('coach_id', user.id),
+        supabase.from('feedback').select('*').eq('coach_id', user.id),
+      ])
+      timesData = t.data ?? []
+      goalsData = g.data ?? []
+    }
+
+    const payload = {
+      exported_at: new Date().toISOString(),
+      profile: profileRes.data,
+      times: timesData,
+      data: goalsData,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `swimphoria-data-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const deleteAccount = async () => {
+    if (!user) return
+    setDeleting(true)
+    try {
+      if (profile?.role === 'swimmer') {
+        const { data: sw } = await supabase
+          .from('swimmers')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle()
+        if (sw) {
+          await Promise.all([
+            supabase.from('times').delete().eq('swimmer_id', sw.id),
+            supabase.from('goals').delete().eq('swimmer_id', sw.id),
+          ])
+        }
+      } else {
+        // Coach — delete owned data
+        await Promise.all([
+          supabase.from('times').delete().eq('coach_id', user.id),
+          supabase.from('sessions').delete().eq('coach_id', user.id),
+          supabase.from('feedback').delete().eq('coach_id', user.id),
+        ])
+      }
+      await Promise.all([
+        supabase.from('messages').delete().eq('sender_id', user.id),
+      ])
+      // Clear PII from profile; full auth deletion requires a server-side admin call
+      await supabase.from('profiles').update({
+        full_name: '[deleted]',
+        avatar_url: null,
+        display_handle: null,
+      }).eq('id', user.id)
+      await signOut()
+      navigate('/')
+    } catch (e) {
+      setDeleting(false)
+      alert(e instanceof Error ? e.message : 'Deletion failed')
+    }
+  }
+
   return (
     <div className="max-w-xl space-y-8">
+      {/* Profile */}
       <div>
         <SectionHeader kicker="Profile" />
         <Card>
@@ -92,6 +214,17 @@ export function SettingsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+            <div className="relative">
+              <AtSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+              <Input
+                label="Public handle"
+                placeholder="yourhandle"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                hint="Shown in leaderboard instead of your full name. Letters, numbers, _ and - only."
+                className="pl-9"
+              />
+            </div>
             <Input
               label="Avatar URL"
               type="url"
@@ -117,6 +250,7 @@ export function SettingsPage() {
         </Card>
       </div>
 
+      {/* Security */}
       <div>
         <SectionHeader kicker="Security" />
         <Card>
@@ -161,6 +295,33 @@ export function SettingsPage() {
         </Card>
       </div>
 
+      {/* Appearance */}
+      <div>
+        <SectionHeader kicker="Appearance" />
+        <Card>
+          <CardHeader title="Theme" subtitle="Choose your preferred colour scheme." />
+          <div className="flex gap-2">
+            {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                onClick={() => setTheme(value)}
+                aria-label={`${label} theme`}
+                className={cn(
+                  'flex flex-1 flex-col items-center gap-1.5 rounded-component border px-3 py-3 text-xs font-medium transition-colors',
+                  theme === value
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-surface text-text-secondary hover:border-primary/40 hover:text-text-primary',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* Account */}
       <div>
         <SectionHeader kicker="Account" />
         <div className="space-y-4">
@@ -172,9 +333,23 @@ export function SettingsPage() {
             <Button
               variant="secondary"
               leftIcon={<RefreshCw className="h-4 w-4" />}
-              onClick={() => navigate('/role-select')}
+              onClick={handleRoleChange}
             >
               Change my role
+            </Button>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Export my data"
+              subtitle="Download a JSON file with all your Swimphoria data."
+            />
+            <Button
+              variant="outline"
+              leftIcon={<Download className="h-4 w-4" />}
+              onClick={exportData}
+            >
+              Export data
             </Button>
           </Card>
 
@@ -191,8 +366,64 @@ export function SettingsPage() {
               Sign out
             </Button>
           </Card>
+
+          <Card>
+            <CardHeader
+              title="Delete account"
+              subtitle="Permanently removes your data. This cannot be undone."
+            />
+            <Button
+              variant="danger"
+              leftIcon={<Trash2 className="h-4 w-4" />}
+              onClick={() => setDeleteConfirm(true)}
+            >
+              Delete my account
+            </Button>
+          </Card>
         </div>
       </div>
+
+      {/* Role-switch guardrail modal */}
+      <Modal open={showRoleWarn} onClose={() => setShowRoleWarn(false)} title="Switch role?">
+        <p className="text-sm text-text-secondary">
+          You have <span className="font-semibold text-text-primary">{swimmers?.length ?? 0} swimmer{(swimmers?.length ?? 0) !== 1 ? 's' : ''}</span> in your roster. Switching roles will not delete your roster data, but you will lose coach access until you switch back.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setShowRoleWarn(false)}>Cancel</Button>
+          <Button
+            variant="secondary"
+            leftIcon={<RefreshCw className="h-4 w-4" />}
+            onClick={() => { setShowRoleWarn(false); navigate('/role-select') }}
+          >
+            Switch anyway
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Delete account modal */}
+      <Modal open={deleteConfirm} onClose={() => setDeleteConfirm(false)} title="Delete your account?">
+        <p className="text-sm text-text-secondary">
+          This will permanently remove your profile and data. Type <span className="font-mono font-semibold text-danger">delete</span> to confirm.
+        </p>
+        <Input
+          className="mt-3"
+          placeholder="delete"
+          value={deletePhrase}
+          onChange={(e) => setDeletePhrase(e.target.value)}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => { setDeleteConfirm(false); setDeletePhrase('') }}>Cancel</Button>
+          <Button
+            variant="danger"
+            leftIcon={<Trash2 className="h-4 w-4" />}
+            loading={deleting}
+            disabled={deletePhrase !== 'delete'}
+            onClick={deleteAccount}
+          >
+            Delete permanently
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

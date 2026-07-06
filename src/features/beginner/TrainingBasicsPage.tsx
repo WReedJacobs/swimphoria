@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { BeginnerTip } from '@/components/ui/BeginnerTip'
+import { GuideFooter } from '@/components/ui/GuideFooter'
 import { cn } from '@/lib/cn'
 import { effortLevels, trainingFacts } from './content'
 
@@ -115,6 +116,8 @@ export function TrainingBasicsPage() {
           })}
         </Card>
       </div>
+
+      <GuideFooter next={{ label: 'Pace Clock & Notation', href: '/beginner/learn/pace-clock' }} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Users, CalendarDays, Trophy, Timer, ArrowRight, Plus, Copy, Medal } from 'lucide-react'
+import { Users, CalendarDays, Trophy, Timer, ArrowRight, Plus, Copy, Medal, CheckCircle2, Circle, X } from 'lucide-react'
 import { StatTile } from '@/components/ui/StatTile'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Card, CardHeader } from '@/components/ui/Card'
@@ -20,6 +20,74 @@ import { useSquadLeaderboard } from '@/hooks/useSwimmerStats'
 import { fastestByEvent } from '@/lib/pbDetector'
 import { formatTime } from '@/lib/formatTime'
 import { swimmerName } from '@/types'
+
+const SETUP_DISMISSED_KEY = 'sc_coach_setup_dismissed'
+
+function CoachSetupCard({
+  hasSwimmers,
+  hasSessions,
+  hasTimes,
+}: {
+  hasSwimmers: boolean
+  hasSessions: boolean
+  hasTimes: boolean
+}) {
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(SETUP_DISMISSED_KEY) === 'true',
+  )
+
+  const steps = [
+    { label: 'Add your first swimmer', done: hasSwimmers, href: '/coach/roster' },
+    { label: 'Build a session', done: hasSessions, href: '/coach/sessions/new' },
+    { label: 'Log a time for a swimmer', done: hasTimes, href: '/coach/log' },
+    { label: 'Leave a feedback note', done: false, href: '/coach/feedback' },
+  ]
+
+  const doneCount = steps.filter((s) => s.done).length
+
+  if (dismissed) return null
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div>
+          <p className="font-semibold text-text-primary">Get set up</p>
+          <p className="text-sm text-text-secondary">
+            {doneCount} of {steps.length} steps complete
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            localStorage.setItem(SETUP_DISMISSED_KEY, 'true')
+            setDismissed(true)
+          }}
+          aria-label="Dismiss setup card"
+          className="text-text-muted hover:text-text-primary"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <ul className="space-y-2">
+        {steps.map((step) => (
+          <li key={step.label} className="flex items-center gap-3">
+            {step.done ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-secondary" />
+            ) : (
+              <Circle className="h-4 w-4 shrink-0 text-text-muted" />
+            )}
+            {step.done ? (
+              <span className="text-sm line-through text-text-muted">{step.label}</span>
+            ) : (
+              <Link to={step.href} className="text-sm text-primary hover:underline">
+                {step.label}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
+}
 
 function startOfWeek(): Date {
   const d = new Date()
@@ -68,7 +136,10 @@ export function CoachDashboard() {
         const swTimes = times.filter((t) => t.swimmer_id === sw.id)
         const goal = goals.find((g) => g.swimmer_id === sw.id && !g.achieved)
         if (!goal) return null
-        const best = fastestByEvent(swTimes).get(`${goal.stroke}-${goal.distance}`)
+        const bestMap = fastestByEvent(swTimes)
+        const best = [...bestMap.values()]
+          .filter((t) => t.stroke === goal.stroke && t.distance === goal.distance)
+          .sort((a, b) => a.time_seconds - b.time_seconds)[0]
         if (!best) return null
         const pct = Math.min(100, (goal.target_time_seconds / best.time_seconds) * 100)
         return { sw, goal, best, pct }
@@ -118,6 +189,13 @@ export function CoachDashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Setup card — dismissible, shows until all key actions done */}
+      <CoachSetupCard
+        hasSwimmers={(swimmers?.length ?? 0) > 0}
+        hasSessions={(sessions?.length ?? 0) > 0}
+        hasTimes={(times?.length ?? 0) > 0}
+      />
+
       {/* Stat tiles */}
       <div>
         <SectionHeader kicker="Overview" />
@@ -196,7 +274,7 @@ export function CoachDashboard() {
           <SectionHeader
             kicker="Squad Ratings"
             action={
-              <Link to="/leaderboard">
+              <Link to="/coach/leaderboard">
                 <Button variant="ghost" size="sm" leftIcon={<Medal className="h-3.5 w-3.5" />}>
                   Full leaderboard
                 </Button>

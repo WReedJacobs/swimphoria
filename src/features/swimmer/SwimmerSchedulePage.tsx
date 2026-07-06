@@ -10,18 +10,13 @@ import { Modal } from '@/components/ui/Modal'
 import { useMySwimmer } from '@/hooks/useMySwimmer'
 import { useMyBookings, useCreateBooking } from '@/hooks/useBookings'
 import { useAuth } from '@/hooks/useAuth'
+import { localDateStr } from '@/lib/dateLocal'
 import type { BookingStatus } from '@/types'
 
 const statusTone: Record<BookingStatus, 'amber' | 'green' | 'gray'> = {
   pending: 'amber',
   confirmed: 'green',
   cancelled: 'gray',
-}
-
-function parsePreferredDate(notes: string | null | undefined): string | null {
-  if (!notes) return null
-  const match = notes.match(/Preferred date:\s*(\d{4}-\d{2}-\d{2})/)
-  return match ? match[1] : null
 }
 
 export function SwimmerSchedulePage() {
@@ -39,14 +34,11 @@ export function SwimmerSchedulePage() {
 
   const handleRequest = async () => {
     if (!swimmer || !profile?.coach_id) return
-    const parts = [
-      preferredDate ? `Preferred date: ${preferredDate}` : '',
-      notes.trim(),
-    ].filter(Boolean)
     await createBooking.mutateAsync({
       swimmer_id: swimmer.id,
       coach_id: profile.coach_id,
-      notes: parts.join(' · ') || undefined,
+      preferred_date: preferredDate || null,
+      notes: notes.trim() || undefined,
     })
     setPreferredDate('')
     setNotes('')
@@ -90,29 +82,23 @@ export function SwimmerSchedulePage() {
           />
         ) : (
           <ul className="divide-y divide-border">
-            {(bookings ?? []).map((b) => {
-              const prefDate = parsePreferredDate(b.notes)
-              const otherNotes = b.notes
-                ? b.notes.replace(/Preferred date:\s*\d{4}-\d{2}-\d{2}\s*·?\s*/, '').trim()
-                : ''
-              return (
-                <li key={b.id} className="flex items-center justify-between py-3 text-sm">
-                  <div>
-                    <p className="font-medium text-text-primary">Session request</p>
-                    <p className="mt-0.5 font-mono text-xs tabular-nums text-text-muted">
-                      Sent {new Date(b.requested_at).toLocaleDateString(undefined, {
-                        weekday: 'short', month: 'short', day: 'numeric',
-                      })}
-                      {prefDate && (
-                        <> · <span className="text-text-secondary">Preferred {new Date(prefDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></>
-                      )}
-                      {otherNotes && ` · ${otherNotes}`}
-                    </p>
-                  </div>
-                  <Badge tone={statusTone[b.status]} className="capitalize">{b.status}</Badge>
-                </li>
-              )
-            })}
+            {(bookings ?? []).map((b) => (
+              <li key={b.id} className="flex items-center justify-between py-3 text-sm">
+                <div>
+                  <p className="font-medium text-text-primary">Session request</p>
+                  <p className="mt-0.5 font-mono text-xs tabular-nums text-text-muted">
+                    Sent {new Date(b.requested_at).toLocaleDateString(undefined, {
+                      weekday: 'short', month: 'short', day: 'numeric',
+                    })}
+                    {b.preferred_date && (
+                      <> · <span className="text-text-secondary">Preferred {new Date(b.preferred_date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></>
+                    )}
+                    {b.notes && ` · ${b.notes}`}
+                  </p>
+                </div>
+                <Badge tone={statusTone[b.status]} className="capitalize">{b.status}</Badge>
+              </li>
+            ))}
           </ul>
         )}
       </Card>
@@ -127,7 +113,7 @@ export function SwimmerSchedulePage() {
             type="date"
             value={preferredDate}
             onChange={(e) => setPreferredDate(e.target.value)}
-            min={new Date().toISOString().slice(0, 10)}
+            min={localDateStr()}
             hint="Your coach may suggest a different date"
           />
           <Textarea

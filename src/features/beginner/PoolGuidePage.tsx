@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Badge } from '@/components/ui/Badge'
 import { BeginnerTip } from '@/components/ui/BeginnerTip'
+import { GuideFooter } from '@/components/ui/GuideFooter'
 import { cn } from '@/lib/cn'
 import { laneEtiquette, equipment } from './content'
 
@@ -82,6 +83,8 @@ export function PoolGuidePage() {
           ))}
         </div>
       </div>
+
+      <GuideFooter next={{ label: 'First Visit Walkthrough', href: '/beginner/learn/first-visit' }} />
     </div>
   )
 }

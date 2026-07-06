@@ -10,12 +10,13 @@ import { Avatar } from '@/components/ui/Avatar'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { cn } from '@/lib/cn'
 import { formatTime, parseTime } from '@/lib/formatTime'
+import { localDateStr } from '@/lib/dateLocal'
 import { useSwimmers } from '@/hooks/useSwimmers'
 import { useSessions } from '@/hooks/useSessions'
 import { useLogTime } from '@/hooks/useTimes'
 import { useCssResultForSwimmer } from '@/hooks/useCssResults'
-import { STROKES, DISTANCES, swimmerName } from '@/types'
-import type { Stroke, Swimmer } from '@/types'
+import { STROKES, DISTANCES, COURSES, COURSE_LABELS, swimmerName } from '@/types'
+import type { Stroke, Course, Swimmer } from '@/types'
 
 type Mode = 'stopwatch' | 'bulk'
 
@@ -108,13 +109,14 @@ function StopwatchMode({
   sessions: { id: string; title: string; date: string }[]
 }) {
   const logTime = useLogTime()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const todaySessionId = sessions.find((s) => s.date === today)?.id ?? ''
 
   const [search, setSearch] = useState('')
   const [swimmerId, setSwimmerId] = useState<string>(swimmers[0]?.id ?? '')
   const [stroke, setStroke] = useState<Stroke>('freestyle')
   const [distance, setDistance] = useState<number>(100)
+  const [course, setCourse] = useState<Course>('SCM')
   const [sessionId, setSessionId] = useState<string>(todaySessionId)
 
   const [pending, setPending] = useState<number | null>(null)
@@ -140,6 +142,7 @@ function StopwatchMode({
       swimmer_id: swimmerId,
       stroke,
       distance,
+      course,
       time_seconds: pending,
       session_id: sessionId || null,
       notes,
@@ -192,6 +195,12 @@ function StopwatchMode({
           <Select label="Distance (m)" value={distance} onChange={(e) => setDistance(Number(e.target.value))}>
             {DISTANCES.map((d) => (
               <option key={d} value={d}>{d}m</option>
+            ))}
+          </Select>
+
+          <Select label="Pool course" value={course} onChange={(e) => setCourse(e.target.value as Course)}>
+            {COURSES.map((c) => (
+              <option key={c} value={c}>{c} — {COURSE_LABELS[c]}</option>
             ))}
           </Select>
 
@@ -302,11 +311,12 @@ interface BulkRow {
   swimmerId: string
   stroke: Stroke
   distance: number
+  course: Course
   raw: string
 }
 
 function emptyRow(swimmerId: string): BulkRow {
-  return { swimmerId, stroke: 'freestyle', distance: 100, raw: '' }
+  return { swimmerId, stroke: 'freestyle', distance: 100, course: 'SCM', raw: '' }
 }
 
 function BulkMode({
@@ -317,7 +327,7 @@ function BulkMode({
   sessions: { id: string; title: string; date: string }[]
 }) {
   const logTime = useLogTime()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const todaySessionId = sessions.find((s) => s.date === today)?.id ?? ''
 
   const [rows, setRows] = useState<BulkRow[]>(() =>
@@ -344,6 +354,7 @@ function BulkMode({
         swimmer_id: r.swimmerId,
         stroke: r.stroke,
         distance: r.distance,
+        course: r.course,
         time_seconds: seconds,
         session_id: sessionId || null,
       })
@@ -425,6 +436,7 @@ function BulkMode({
               <th className="py-2 pr-3">Swimmer</th>
               <th className="py-2 pr-3">Stroke</th>
               <th className="py-2 pr-3">Distance</th>
+              <th className="py-2 pr-3">Course</th>
               <th className="py-2 pr-3">Time</th>
             </tr>
           </thead>
@@ -451,6 +463,13 @@ function BulkMode({
                     <Select value={r.distance} onChange={(e) => update(i, { distance: Number(e.target.value) })}>
                       {DISTANCES.map((d) => (
                         <option key={d} value={d}>{d}m</option>
+                      ))}
+                    </Select>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <Select value={r.course} onChange={(e) => update(i, { course: e.target.value as Course })}>
+                      {COURSES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
                       ))}
                     </Select>
                   </td>

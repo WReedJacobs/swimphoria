@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './useAuth'
 import { calculateStats, type RawActivity } from '@/lib/statsEngine'
+import { localDateStr } from '@/lib/dateLocal'
 import type { Profile } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ export interface SwimmerStatsRow {
 }
 
 export interface LeaderboardEntry extends SwimmerStatsRow {
-  profile: Pick<Profile, 'id' | 'full_name' | 'role' | 'avatar_url'> | null
+  profile: Pick<Profile, 'id' | 'full_name' | 'display_handle' | 'role' | 'avatar_url'> | null
 }
 
 // ─── Streak helper ────────────────────────────────────────────────────────
@@ -41,8 +42,7 @@ function calcStreaks(sortedDates: string[]) {
   const dateSet = new Set(sortedDates)
   let current = 0
   const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  while (dateSet.has(d.toISOString().slice(0, 10))) {
+  while (dateSet.has(localDateStr(d))) {
     current++
     d.setDate(d.getDate() - 1)
   }
@@ -240,7 +240,7 @@ export function useLeaderboard(sortBy: keyof SwimmerStatsRow = 'ovr') {
     queryFn: async (): Promise<LeaderboardEntry[]> => {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, role, avatar_url')
+        .select('id, full_name, display_handle, role, avatar_url')
         .eq('is_public', true)
       if (!profiles?.length) return []
       const ids = profiles.map((p) => p.id)
@@ -267,7 +267,7 @@ export function useSquadLeaderboard(coachId: string | null) {
     queryFn: async (): Promise<LeaderboardEntry[]> => {
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, role, avatar_url')
+        .select('id, full_name, display_handle, role, avatar_url')
         .eq('coach_id', coachId!)
       if (!profiles?.length) return []
       const ids = profiles.map((p) => p.id)

@@ -68,17 +68,33 @@ export function Stopwatch({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="font-mono text-6xl font-semibold tabular-nums tracking-tight text-text-primary">
+      <div
+        className="font-mono text-6xl font-semibold tabular-nums tracking-tight text-text-primary"
+        aria-live="off"
+        aria-label={`Elapsed time: ${formatStopwatch(elapsed)}`}
+      >
         {formatStopwatch(elapsed)}
       </div>
 
       <div className="flex items-center gap-3">
         {!running ? (
-          <Button size="lg" accent={accent} leftIcon={<Play className="h-5 w-5" />} onClick={start}>
+          <Button
+            size="lg"
+            accent={accent}
+            leftIcon={<Play className="h-5 w-5" />}
+            onClick={start}
+            aria-label={elapsed > 0 ? 'Resume stopwatch' : 'Start stopwatch'}
+          >
             {elapsed > 0 ? 'Resume' : 'Start'}
           </Button>
         ) : (
-          <Button size="lg" variant="danger" leftIcon={<Pause className="h-5 w-5" />} onClick={stop}>
+          <Button
+            size="lg"
+            variant="danger"
+            leftIcon={<Pause className="h-5 w-5" />}
+            onClick={stop}
+            aria-label="Stop stopwatch and save time"
+          >
             Stop
           </Button>
         )}
@@ -88,6 +104,7 @@ export function Stopwatch({
           leftIcon={<Flag className="h-5 w-5" />}
           onClick={lap}
           disabled={!running}
+          aria-label="Record lap split"
         >
           Lap
         </Button>
@@ -97,16 +114,18 @@ export function Stopwatch({
           leftIcon={<RotateCcw className="h-5 w-5" />}
           onClick={reset}
           disabled={elapsed === 0}
+          aria-label="Reset stopwatch"
         >
           Reset
         </Button>
       </div>
 
       {laps.length > 0 && (
-        <div className="w-full max-w-xs space-y-1">
+        <div className="w-full max-w-xs space-y-1" role="list" aria-label="Lap splits">
           {laps.map((l, i) => (
             <div
               key={i}
+              role="listitem"
               className="flex justify-between border-b border-border py-1 text-sm text-text-secondary"
             >
               <span>Lap {i + 1}</span>

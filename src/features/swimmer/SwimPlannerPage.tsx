@@ -16,6 +16,7 @@ import {
   type SwimmerPlan,
 } from '@/hooks/useSwimmerPlans'
 import { calcDifficulty, formatMeters, type PlanSet, type Intensity } from '@/lib/planDifficulty'
+import { localDateStr } from '@/lib/dateLocal'
 import { STROKES, type Stroke } from '@/types'
 import { cn } from '@/lib/cn'
 
@@ -36,7 +37,7 @@ function addDays(d: Date, n: number): Date {
 }
 
 function toDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10)
+  return localDateStr(d)
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

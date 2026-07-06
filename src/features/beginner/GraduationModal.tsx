@@ -79,12 +79,17 @@ export function GraduationModal({ open }: { open: boolean }) {
           <Button className="w-full" size="lg" loading={loading} onClick={handleGraduate}>
             {user ? 'Become a Swimmer' : 'Create Swimmer Account'}
           </Button>
-          <button
-            onClick={handleDismiss}
-            className="text-center text-sm text-text-muted transition-colors hover:text-text-secondary"
-          >
-            Continue as Beginner for now
-          </button>
+          <div className="rounded-card border border-border bg-bg p-4 text-center">
+            <p className="mb-2 text-sm text-text-secondary">
+              Not ready yet? Keep going at your own pace — your progress is saved.
+            </p>
+            <button
+              onClick={handleDismiss}
+              className="text-sm font-medium text-coral transition-colors hover:underline"
+            >
+              Continue as Beginner for now →
+            </button>
+          </div>
         </div>
       </div>
     </div>

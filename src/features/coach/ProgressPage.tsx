@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { LineChart as LineChartIcon, Users } from 'lucide-react'
+import { LineChart as LineChartIcon, Users, Download } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { StatTile } from '@/components/ui/StatTile'
@@ -10,6 +10,23 @@ import { useSwimmers } from '@/hooks/useSwimmers'
 import { useTimes } from '@/hooks/useTimes'
 import { useAttendanceMatrix } from '@/hooks/useSessions'
 import { swimmerName } from '@/types'
+import { downloadCsv } from '@/lib/csvUtils'
+import { Button } from '@/components/ui/Button'
+
+function exportAttendanceCsv(att: ReturnType<typeof useAttendanceMatrix>['data']) {
+  if (!att) return
+  const headers = ['session', 'date', ...att.tableSwimmers.map((s) => s.name)]
+  const rows = att.tableSessions.map((sess) => [
+    sess.title,
+    sess.date,
+    ...att.tableSwimmers.map((sw) => {
+      const cell = att.matrix[sess.id]?.[sw.id]
+      return cell === true ? 'yes' : cell === false ? 'no' : ''
+    }),
+  ])
+  const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n')
+  downloadCsv(csv, `attendance-${new Date().toISOString().slice(0, 10)}.csv`)
+}
 
 function AttendanceTable() {
   const { data: att } = useAttendanceMatrix()
@@ -18,7 +35,21 @@ function AttendanceTable() {
 
   return (
     <Card>
-      <CardHeader title="Attendance" subtitle="Last 10 sessions" />
+      <CardHeader
+        title="Attendance"
+        subtitle="Last 10 sessions"
+        action={
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Download className="h-4 w-4" />}
+            onClick={() => exportAttendanceCsv(att)}
+            aria-label="Export attendance CSV"
+          >
+            CSV
+          </Button>
+        }
+      />
       <div className="overflow-x-auto">
         <table className="w-full min-w-max text-sm">
           <thead>

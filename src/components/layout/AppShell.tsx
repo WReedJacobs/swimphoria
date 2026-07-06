@@ -6,6 +6,7 @@ import { MobileNav } from './MobileNav'
 import { navForRole } from './nav'
 import { useMySwimmer } from '@/hooks/useMySwimmer'
 import { useSwimmerRealtime } from '@/hooks/useSwimmerRealtime'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 
 function titleForPath(role: Role | null, pathname: string): string {
   const items = navForRole(role)
@@ -24,11 +25,18 @@ function SwimmerRealtimeLayer() {
   return null
 }
 
+/** Null-render component that flushes the offline time-log queue on reconnect. */
+function OfflineSyncLayer() {
+  useOfflineSync()
+  return null
+}
+
 export function AppShell({ role }: { role: Role | null }) {
   const { pathname } = useLocation()
   return (
     <div className="flex h-screen overflow-hidden bg-bg">
       {role === 'swimmer' && <SwimmerRealtimeLayer />}
+      <OfflineSyncLayer />
       <Sidebar role={role} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar title={titleForPath(role, pathname)} />

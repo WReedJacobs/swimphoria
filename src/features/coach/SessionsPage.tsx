@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, CalendarDays, Pencil, Trash2, Users, Check } from 'lucide-react'
+import { Plus, CalendarDays, Pencil, Trash2, Users, Check, Copy } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Button } from '@/components/ui/Button'
@@ -9,8 +9,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { cn } from '@/lib/cn'
-import { useSessions, useDeleteSession, useAllSessionAssignments, useMarkAttendance } from '@/hooks/useSessions'
+import { useSessions, useDeleteSession, useDuplicateSession, useAllSessionAssignments, useMarkAttendance } from '@/hooks/useSessions'
 import type { AssignmentRow } from '@/hooks/useSessions'
+import { localDateStr } from '@/lib/dateLocal'
 import type { Session, SessionType } from '@/types'
 
 const typeTone: Record<SessionType, 'blue' | 'amber' | 'green'> = {
@@ -60,7 +61,8 @@ export function SessionsPage() {
   const { data: sessions, isLoading } = useSessions()
   const { data: assignments } = useAllSessionAssignments()
   const deleteSession = useDeleteSession()
-  const today = new Date().toISOString().slice(0, 10)
+  const duplicateSession = useDuplicateSession()
+  const today = localDateStr()
   const [confirmDelete, setConfirmDelete] = useState<Session | null>(null)
   const [openAttendance, setOpenAttendance] = useState<string | null>(null)
 
@@ -140,6 +142,16 @@ export function SessionsPage() {
                         {attendedCount}/{sessionAssignments.length}
                       </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      leftIcon={<Copy className="h-4 w-4" />}
+                      onClick={() => duplicateSession.mutate(s)}
+                      loading={duplicateSession.isPending}
+                      aria-label="Duplicate session"
+                    >
+                      Dupe
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

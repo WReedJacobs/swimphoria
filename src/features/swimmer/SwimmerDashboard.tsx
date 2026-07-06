@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useOnboardingDraft } from '@/features/onboarding/onboardingStore'
 import { useMyStats, useRecalculateStats } from '@/hooks/useSwimmerStats'
 import { fastestByEvent } from '@/lib/pbDetector'
+import { localDateStr } from '@/lib/dateLocal'
 import { cn } from '@/lib/cn'
 
 function startOfWeek(): Date {
@@ -120,7 +121,7 @@ export function SwimmerDashboard() {
   const streak = useStreak(swimmer?.id)
   const [onboarding] = useOnboardingDraft()
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const todaySession = (sessions ?? []).find((s) => s.date === today) ?? null
 
   const pbCount = useMemo(() => fastestByEvent(times ?? []).size, [times])
@@ -137,9 +138,40 @@ export function SwimmerDashboard() {
   const hasRealCoach =
     profile?.coach_id !== null && profile?.coach_id !== profile?.id
 
+  const isFirstRun = !hasRealCoach && (times?.length ?? 0) === 0
+  const [coachPathChosen, setCoachPathChosen] = useState(false)
+
   return (
     <div className="space-y-8">
-      {!hasRealCoach && (
+      {/* First-run: no coach, no times — show two-path chooser */}
+      {isFirstRun && !coachPathChosen && (
+        <div>
+          <SectionHeader kicker="Welcome" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <button
+              onClick={() => setCoachPathChosen(true)}
+              className="rounded-card border border-border bg-surface p-5 text-left transition-all hover:border-primary/50"
+            >
+              <p className="font-semibold text-text-primary">I have a coach code</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                Enter your coach's 6-character code to connect and see your sessions automatically.
+              </p>
+            </button>
+            <Link
+              to="/beginner"
+              className="rounded-card border border-border bg-surface p-5 text-left transition-all hover:border-coral/50 block"
+            >
+              <p className="font-semibold text-text-primary">I'm new to swimming</p>
+              <p className="mt-1 text-sm text-text-secondary">
+                Follow the guided beginner path — no coach needed to get started.
+              </p>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Coach card: show after two-path chooser selection, or when has times but no coach */}
+      {!hasRealCoach && (coachPathChosen || (!isFirstRun)) && (
         <div>
           <SectionHeader kicker="Get started" />
           <JoinCoachCard />

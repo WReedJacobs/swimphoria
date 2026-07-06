@@ -22,18 +22,19 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/store/authStore'
 import { STROKES, type Level } from '@/types'
-import { useOnboardingDraft, LEVEL_TEMPLATES, pacePer100, type OnboardingRole } from './onboardingStore'
+import { useOnboardingDraft, LEVEL_TEMPLATES, pacePer100, type OnboardingRole, type StartingPoint } from './onboardingStore'
 
 const v = (name: string, alpha?: number) =>
   alpha == null ? `rgb(var(${name}))` : `rgb(var(${name}) / ${alpha})`
 
 // Step indices
 // 0: Role (coach or swimmer)
-// 1: Level + goal (swimmer only)
-// 2: First swim (swimmer only)
-// 3: Tracker (swimmer only)
-// 4: Account wall
-// 5: Done
+// 1: Swim ability (swimmer only)
+// 2: Level + goal (swimmer only)
+// 3: First swim (swimmer only)
+// 4: Tracker (swimmer only)
+// 5: Account wall
+// 6: Done
 
 const LEVEL_ICON: Record<Level, typeof Waves> = {
   beginner: Sparkles,
@@ -42,14 +43,6 @@ const LEVEL_ICON: Record<Level, typeof Waves> = {
   elite: Trophy,
 }
 
-async function waitForSession(ms = 2500): Promise<boolean> {
-  const start = performance.now()
-  while (performance.now() - start < ms) {
-    if (useAuthStore.getState().session) return true
-    await new Promise((r) => setTimeout(r, 80))
-  }
-  return Boolean(useAuthStore.getState().session)
-}
 
 function Stepper({
   label,
@@ -92,25 +85,28 @@ export function OnboardingFlow() {
   const [submitting, setSubmitting] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [existing, setExisting] = useState(false)
+  const [needsConfirmation, setNeedsConfirmation] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState<string | null>(null)
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   const pace = pacePer100(draft.session.distanceMeters, draft.session.timeSeconds)
 
   const isCoach = draft.onboardingRole === 'coach'
 
-  // Coaches skip swimmer-only steps (1, 2, 3) → role(0) → account(4) → done(5)
+  // Coaches skip swimmer-only steps (1–4) → role(0) → account(5) → done(6)
   const next = () => {
-    if (step === 0 && isCoach) { setStep(4); return }
-    if (step === 4 && isCoach) { setStep(5); return }
-    setStep((s) => Math.min(5, s + 1))
+    if (step === 0 && isCoach) { setStep(5); return }
+    if (step === 5 && isCoach) { setStep(6); return }
+    setStep((s) => Math.min(6, s + 1))
   }
   const back = () => {
-    if (step === 4 && isCoach) { setStep(0); return }
+    if (step === 5 && isCoach) { setStep(0); return }
     setStep((s) => Math.max(0, s - 1))
   }
 
-  // Progress bar: coaches see 2 segments, swimmers see 5
-  const visibleSteps = isCoach ? [0, 4] : [0, 1, 2, 3, 4]
+  // Progress bar: coaches see 2 segments, swimmers see 6
+  const visibleSteps = isCoach ? [0, 5] : [0, 1, 2, 3, 4, 5]
   const visibleIndex = visibleSteps.indexOf(step)
   const totalVisible = visibleSteps.length
 
@@ -136,6 +132,8 @@ export function OnboardingFlow() {
   const submitAccount = async () => {
     setAuthError(null)
     setExisting(false)
+    setNeedsConfirmation(false)
+    setResendMsg(null)
     setSubmitting(true)
     try {
       if (mode === 'signup') {
@@ -143,8 +141,11 @@ export function OnboardingFlow() {
       } else {
         await signIn(email, password)
       }
-      const ok = await waitForSession()
-      if (!ok) {
+
+      // signIn sets session immediately; signUp may not if email confirmation required.
+      const session = useAuthStore.getState().session
+      if (!session) {
+        setNeedsConfirmation(true)
         setAuthError('Check your email to confirm your account, then sign in.')
         return
       }
@@ -198,6 +199,17 @@ export function OnboardingFlow() {
     }
   }
 
+  const resendConfirmation = async () => {
+    setResending(true)
+    setResendMsg(null)
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email })
+      setResendMsg(error ? error.message : 'Email resent — check your inbox.')
+    } finally {
+      setResending(false)
+    }
+  }
+
   return (
     <div
       className="flex min-h-screen flex-col items-center px-4 py-8"
@@ -209,13 +221,13 @@ export function OnboardingFlow() {
           <button onClick={() => navigate('/')} aria-label="Home">
             <BrandMark />
           </button>
-          {step < 5 && (
+          {step < 6 && (
             <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-muted">
               Step {Math.max(1, visibleIndex + 1)} / {totalVisible}
             </span>
           )}
         </div>
-        {step < 5 && (
+        {step < 6 && (
           <div className="mb-8 flex gap-1.5">
             {Array.from({ length: totalVisible }).map((_, i) => (
               <span
@@ -283,8 +295,65 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        {/* Step 1 — Level + goal (swimmer only) */}
+        {/* Step 1 — Swim ability (swimmer only) */}
         {step === 1 && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">How comfortable are you in the water?</h1>
+              <p className="mt-1 text-sm text-text-secondary">Honest answer — it just tailors your starting point. No right or wrong.</p>
+            </div>
+            <div className="space-y-3">
+              {(
+                [
+                  {
+                    value: 'water-confidence' as StartingPoint,
+                    title: 'I struggle to swim a full length',
+                    blurb: "Water feels uncomfortable or you're still building confidence.",
+                  },
+                  {
+                    value: 'beginner' as StartingPoint,
+                    title: 'I can swim a few lengths but have a lot to learn',
+                    blurb: 'You can get from one end to the other — just not pretty or fast yet.',
+                  },
+                  {
+                    value: 'trained' as StartingPoint,
+                    title: 'I swim regularly and want to improve',
+                    blurb: 'You have a solid base and are ready for structured training.',
+                  },
+                ] as const
+              ).map(({ value, title, blurb }) => {
+                const active = draft.startingPoint === value
+                return (
+                  <button
+                    key={value}
+                    onClick={() => setDraft((d) => ({ ...d, startingPoint: value }))}
+                    className={cn(
+                      'flex w-full items-start gap-4 rounded-card border p-4 text-left transition-all',
+                      active
+                        ? 'border-primary bg-primary/10 shadow-[inset_2px_0_0_rgb(var(--c-primary))]'
+                        : 'border-border bg-surface hover:border-primary/45',
+                    )}
+                  >
+                    <div className="flex-1">
+                      <p className="font-semibold text-text-primary">{title}</p>
+                      <p className="text-sm text-text-secondary">{blurb}</p>
+                    </div>
+                    {active && <Check className="h-5 w-5 shrink-0 text-primary" />}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="ghost" size="lg" onClick={back}><ArrowLeft className="h-4 w-4" /> Back</Button>
+              <Button className="flex-1" size="lg" disabled={!draft.startingPoint} onClick={next}>
+                Continue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2 — Level + goal (swimmer only) */}
+        {step === 2 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Set your goal</h1>
@@ -337,8 +406,8 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        {/* Step 2 — First swim (swimmer only) */}
-        {step === 2 && (
+        {/* Step 3 — First swim (swimmer only) */}
+        {step === 3 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Log your first swim</h1>
@@ -394,8 +463,8 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        {/* Step 3 — Tracker (swimmer only) */}
-        {step === 3 && (
+        {/* Step 4 — Tracker (swimmer only) */}
+        {step === 4 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">You're already logging</h1>
@@ -446,8 +515,8 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        {/* Step 4 — Account wall */}
-        {step === 4 && (
+        {/* Step 5 — Account wall */}
+        {step === 5 && (
           <div className="space-y-6">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">
@@ -500,17 +569,29 @@ export function OnboardingFlow() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               {authError && (
-                <p className="text-sm text-danger">
-                  {authError}
-                  {existing && (
+                <div className="space-y-1">
+                  <p className="text-sm text-danger">
+                    {authError}
+                    {existing && (
+                      <button
+                        onClick={() => { setMode('signin'); setAuthError(null); setExisting(false) }}
+                        className="ml-1 font-medium text-primary hover:underline"
+                      >
+                        Log in instead
+                      </button>
+                    )}
+                  </p>
+                  {needsConfirmation && (
                     <button
-                      onClick={() => { setMode('signin'); setAuthError(null); setExisting(false) }}
-                      className="ml-1 font-medium text-primary hover:underline"
+                      onClick={resendConfirmation}
+                      disabled={resending}
+                      className="text-sm font-medium text-primary hover:underline disabled:opacity-50"
                     >
-                      Log in instead
+                      {resending ? 'Sending…' : 'Resend confirmation email'}
                     </button>
                   )}
-                </p>
+                  {resendMsg && <p className="text-xs text-text-secondary">{resendMsg}</p>}
+                </div>
               )}
               <Button
                 className="w-full"
@@ -537,8 +618,8 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        {/* Step 5 — Done */}
-        {step === 5 && (
+        {/* Step 6 — Done */}
+        {step === 6 && (
           <div className="space-y-6 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary shadow-glow">
               <Check className="h-8 w-8" />
@@ -548,10 +629,12 @@ export function OnboardingFlow() {
               <p className="mt-1 text-sm text-text-secondary">
                 {isCoach
                   ? 'Your dashboard is ready. Add your first swimmer to get started.'
-                  : 'Your first swim is on the timeline and your streak starts today.'}
+                  : draft.startingPoint === 'water-confidence'
+                    ? "Your account is set up. Start with the Water Confidence guide — it will take you from standing in the pool to your first full length."
+                    : 'Your first swim is on the timeline and your streak starts today.'}
               </p>
             </div>
-            {!isCoach && (
+            {!isCoach && draft.startingPoint !== 'water-confidence' && (
               <Card className="text-left">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-text-muted">First swim</span>
@@ -561,13 +644,23 @@ export function OnboardingFlow() {
                 </div>
               </Card>
             )}
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={() => navigate(isCoach ? '/coach' : '/swimmer')}
-            >
-              Go to dashboard <ArrowRight className="h-4 w-4" />
-            </Button>
+            {!isCoach && draft.startingPoint === 'water-confidence' ? (
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => navigate('/swimmer')}
+              >
+                Go to dashboard <ArrowRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => navigate(isCoach ? '/coach' : '/swimmer')}
+              >
+                Go to dashboard <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         )}
       </div>

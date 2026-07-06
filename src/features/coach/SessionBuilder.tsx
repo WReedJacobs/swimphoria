@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { swimmerName, DISTANCES } from '@/types'
 import type { SessionType, Recurrence } from '@/types'
 import { formatTime, parseTime } from '@/lib/formatTime'
+import { localDateStr } from '@/lib/dateLocal'
 import { buildSetTarget } from '@/lib/cssCalculator'
 
 function generateDates(start: string, pattern: Exclude<Recurrence, 'none'>, end: string): string[] {
@@ -23,18 +24,18 @@ function generateDates(start: string, pattern: Exclude<Recurrence, 'none'>, end:
   const d = new Date(startD)
   if (pattern === 'weekly') {
     while (d <= endD) {
-      dates.push(d.toISOString().slice(0, 10))
+      dates.push(localDateStr(d))
       d.setDate(d.getDate() + 7)
     }
   } else if (pattern === 'mwf') {
     while (d <= endD) {
       const dow = d.getDay()
-      if (dow === 1 || dow === 3 || dow === 5) dates.push(d.toISOString().slice(0, 10))
+      if (dow === 1 || dow === 3 || dow === 5) dates.push(localDateStr(d))
       d.setDate(d.getDate() + 1)
     }
   } else if (pattern === 'daily') {
     while (d <= endD) {
-      dates.push(d.toISOString().slice(0, 10))
+      dates.push(localDateStr(d))
       d.setDate(d.getDate() + 1)
     }
   }
@@ -44,7 +45,7 @@ function generateDates(start: string, pattern: Exclude<Recurrence, 'none'>, end:
 function addWeeks(dateStr: string, weeks: number): string {
   const d = new Date(dateStr + 'T00:00:00')
   d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().slice(0, 10)
+  return localDateStr(d)
 }
 
 export function SessionBuilder() {
@@ -62,7 +63,7 @@ export function SessionBuilder() {
   const { data: existingAssigned } = useSessionAssignments(sessionId)
 
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(localDateStr())
   const [type, setType] = useState<SessionType>('training')
   const [warmUp, setWarmUp] = useState('')
   const [mainSet, setMainSet] = useState('')

@@ -11,6 +11,7 @@ export type Stroke =
   | 'IM'
 export type SessionType = 'training' | 'race' | 'dryland'
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled'
+export type Course = 'SCM' | 'LCM' | 'SCY'
 
 export const STROKES: Stroke[] = [
   'freestyle',
@@ -21,6 +22,14 @@ export const STROKES: Stroke[] = [
 ]
 
 export const DISTANCES = [25, 50, 100, 200, 400, 800, 1500] as const
+
+export const COURSES: Course[] = ['SCM', 'LCM', 'SCY']
+
+export const COURSE_LABELS: Record<Course, string> = {
+  SCM: 'Short-course (m)',
+  LCM: 'Long-course (m)',
+  SCY: 'Short-course (yd)',
+}
 
 export interface Profile {
   id: string
@@ -34,6 +43,7 @@ export interface Profile {
   join_code: string | null
   is_admin: boolean
   created_at: string
+  display_handle: string | null
 }
 
 export interface Swimmer {
@@ -87,11 +97,20 @@ export interface SwimTime {
   session_id: string | null
   stroke: Stroke
   distance: number
+  course: Course
   time_seconds: number
   is_pb: boolean
   is_self_logged: boolean
   recorded_at: string
   notes: string | null
+}
+
+export interface Split {
+  id: string
+  time_id: string
+  lap_number: number
+  split_seconds: number
+  created_at: string
 }
 
 export interface Drill {
@@ -134,6 +153,7 @@ export interface Booking {
   requested_at: string
   status: BookingStatus
   notes: string | null
+  preferred_date: string | null
 }
 
 export interface Goal {
@@ -154,4 +174,13 @@ export interface Milestone {
   distance: number
   achieved: boolean
   achieved_at: string | null
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: string
+  message: string
+  read: boolean
+  created_at: string
 }

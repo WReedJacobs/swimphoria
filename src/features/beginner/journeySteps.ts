@@ -17,20 +17,34 @@ export const JOURNEY_STAGES: JourneyStage[] = [
   {
     id: 'explorer',
     label: 'Explorer',
-    description: 'Get to know the pool and how training works',
+    description: 'Get to know the pool, breathe right, and build confidence',
     steps: [
       {
         id: 'read_pool_guide',
         label: 'Read the Pool Guide',
-        description: 'Learn lane etiquette and what to bring to your first session',
-        href: '/beginner/pool-guide',
+        description: 'Lane etiquette, equipment, and what to expect at the pool',
+        href: '/beginner/learn/pool-guide',
         icon: 'MapPin',
+      },
+      {
+        id: 'read_first_visit',
+        label: 'Read: Your First Visit',
+        description: 'A door-to-water walkthrough of your very first session',
+        href: '/beginner/learn/first-visit',
+        icon: 'DoorOpen',
+      },
+      {
+        id: 'read_breathing',
+        label: 'Read: Breathing Masterclass',
+        description: 'The #1 fix for most beginner swimmers — exhale underwater',
+        href: '/beginner/learn/breathing',
+        icon: 'Wind',
       },
       {
         id: 'read_training_basics',
         label: 'Read Training Basics',
-        description: 'Understand effort levels, intervals and session notation',
-        href: '/beginner/training',
+        description: 'Effort levels, intervals, and how to read a session plan',
+        href: '/beginner/learn/training-basics',
         icon: 'Gauge',
       },
       {
@@ -64,7 +78,7 @@ export const JOURNEY_STAGES: JourneyStage[] = [
       {
         id: 'complete_workout',
         label: 'Complete a workout',
-        description: 'Follow a structured session from the Fitness Program',
+        description: 'Follow a structured session from the 8-week Program',
         href: '/beginner/program',
         icon: 'PlayCircle',
       },
@@ -110,3 +124,12 @@ export const JOURNEY_STAGES: JourneyStage[] = [
 export const ALL_STEP_IDS = JOURNEY_STAGES.flatMap((s) => s.steps.map((st) => st.id))
 
 export const STAGE_ORDER: Array<'explorer' | 'learner' | 'ready'> = ['explorer', 'learner', 'ready']
+
+// Mapping of guide page hrefs to journey step IDs — used by GuideFooter auto-mark
+export const GUIDE_STEP_MAP: Record<string, string> = {
+  '/beginner/learn/pool-guide': 'read_pool_guide',
+  '/beginner/learn/first-visit': 'read_first_visit',
+  '/beginner/learn/breathing': 'read_breathing',
+  '/beginner/learn/training-basics': 'read_training_basics',
+  '/beginner/drills': 'browse_drills',
+}

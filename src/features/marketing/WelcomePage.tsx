@@ -96,7 +96,6 @@ export function WelcomePage() {
   // Signed-in visitors land on the hero too, so route them onward to their
   // own portal instead of bouncing through /login.
   const dashboardPath = isAuthenticated && profile?.role ? `/${profile.role}` : null
-  const primaryTo = dashboardPath ?? '/start'
 
   // Redirect authenticated users away from the landing page immediately
   useEffect(() => {
@@ -293,61 +292,91 @@ export function WelcomePage() {
               </p>
               <div
                 className="animate-fade-up"
-                style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 32, animationDelay: '.18s' }}
+                style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, animationDelay: '.18s' }}
               >
-                <button
-                  ref={magneticRef}
-                  onClick={() => goWithVeil(primaryTo)}
-                  style={{
-                    height: 50,
-                    padding: '0 24px',
-                    border: 'none',
-                    borderRadius: 6,
-                    background: v('--c-primary'),
-                    color: v('--c-on-primary'),
-                    fontFamily: FONT_MONO,
-                    fontWeight: 600,
-                    fontSize: 12.5,
-                    letterSpacing: '.08em',
-                    textTransform: 'uppercase',
-                    boxShadow: 'var(--shadow-glow)',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    willChange: 'transform',
-                  }}
-                >
-                  {dashboardPath ? 'Go to dashboard' : 'Start training'}{' '}
-                  <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 15 }}>→</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {/* Path 1 — Coach */}
+                  <button
+                    ref={magneticRef}
+                    onClick={() => goWithVeil(dashboardPath ?? '/login')}
+                    style={{
+                      height: 46,
+                      padding: '0 20px',
+                      border: 'none',
+                      borderRadius: 6,
+                      background: v('--c-primary'),
+                      color: v('--c-on-primary'),
+                      fontFamily: FONT_MONO,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      letterSpacing: '.08em',
+                      textTransform: 'uppercase',
+                      boxShadow: 'var(--shadow-glow)',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      willChange: 'transform',
+                    }}
+                  >
+                    I'm a coach →
+                  </button>
+
+                  {/* Path 2 — Swimmer with coach */}
+                  <button
+                    onClick={() => goWithVeil('/start')}
+                    style={{
+                      height: 46,
+                      padding: '0 20px',
+                      border: `1px solid ${v('--c-border')}`,
+                      borderRadius: 6,
+                      background: 'transparent',
+                      color: v('--c-text-primary'),
+                      fontFamily: FONT_MONO,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      letterSpacing: '.08em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      transition: 'border-color .25s, background .25s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = v('--c-primary')
+                      e.currentTarget.style.background = v('--c-primary', 0.08)
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = v('--c-border')
+                      e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    I train with a coach →
+                  </button>
+                </div>
+
+                {/* Path 3 — New to swimming (no sign-up) */}
                 <button
                   onClick={() => navigate('/beginner')}
                   style={{
-                    height: 50,
-                    padding: '0 20px',
-                    border: `1px solid ${v('--c-border')}`,
-                    borderRadius: 6,
-                    background: 'transparent',
-                    color: v('--c-text-primary'),
+                    height: 40,
+                    padding: '0 16px',
+                    border: 'none',
+                    background: 'none',
+                    color: v('--c-text-secondary'),
                     fontFamily: FONT_MONO,
-                    fontWeight: 600,
-                    fontSize: 12.5,
+                    fontSize: 11.5,
                     letterSpacing: '.08em',
-                    textTransform: 'uppercase',
                     cursor: 'pointer',
-                    transition: 'border-color .25s, background .25s',
+                    textAlign: 'left',
+                    transition: 'color .2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = v('--c-primary')
-                    e.currentTarget.style.background = v('--c-primary', 0.08)
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = v('--c-border')
-                    e.currentTarget.style.background = 'transparent'
-                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = v('--c-text-primary'))}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = v('--c-text-secondary'))}
                 >
-                  Explore as guest
+                  <span style={{ fontSize: 13 }}>→</span>{' '}
+                  I'm new to swimming — no sign-up needed
                 </button>
               </div>
 

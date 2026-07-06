@@ -12,6 +12,7 @@ import { useMySwimmer, useAssignedSessions } from '@/hooks/useMySwimmer'
 import { useLogTime } from '@/hooks/useTimes'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { parseTime } from '@/lib/formatTime'
+import { localDateStr } from '@/lib/dateLocal'
 import { cn } from '@/lib/cn'
 import { STROKES, DISTANCES } from '@/types'
 import type { Session, Stroke } from '@/types'
@@ -83,8 +84,7 @@ const BLOCKS: { key: string; label: string; field: keyof Session }[] = [
 ]
 
 function CheckableBlocks({ session }: { session: Session }) {
-  const today = new Date().toISOString().slice(0, 10)
-  const [done, setDone] = useLocalStorage<Record<string, boolean>>(`sc_block_done_${today}`, {})
+  const [done, setDone] = useLocalStorage<Record<string, boolean>>(`sc_block_done_${localDateStr()}`, {})
 
   const toggle = (key: string) => setDone((prev) => ({ ...prev, [key]: !prev[key] }))
 
@@ -131,7 +131,7 @@ type FlashType = 'pb' | 'saved' | null
 export function TodaySessionPage() {
   const { data: swimmer } = useMySwimmer()
   const { data: sessions } = useAssignedSessions(swimmer?.id)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const todaySession = (sessions ?? []).find((s) => s.date === today) ?? null
   const upcoming = (sessions ?? []).filter((s) => s.date > today).reverse()
 

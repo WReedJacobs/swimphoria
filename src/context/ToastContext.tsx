@@ -2,13 +2,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from 'react'
-import { Trophy, Info, CheckCircle2, X } from 'lucide-react'
+import { Trophy, Info, CheckCircle2, AlertTriangle, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
-export type ToastType = 'pb' | 'feedback' | 'success' | 'info'
+export type ToastType = 'pb' | 'feedback' | 'success' | 'info' | 'error'
 
 interface Toast {
   id: string
@@ -24,12 +25,22 @@ export function useToast(): AddToast {
   return useContext(ToastContext)
 }
 
+// Module-level delegate so MutationCache (outside React) can fire toasts.
+let _addToast: AddToast = () => {}
+export const toast = {
+  error: (message: string) => _addToast({ type: 'error', message }),
+  success: (message: string) => _addToast({ type: 'success', message }),
+  info: (message: string) => _addToast({ type: 'info', message }),
+}
+
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
   const icon =
     toast.type === 'pb' ? (
       <Trophy className="h-4 w-4 text-accent" />
     ) : toast.type === 'feedback' ? (
       <Info className="h-4 w-4 text-primary" />
+    ) : toast.type === 'error' ? (
+      <AlertTriangle className="h-4 w-4 text-danger" />
     ) : (
       <CheckCircle2 className="h-4 w-4 text-secondary" />
     )
@@ -39,7 +50,9 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       ? 'border-accent/30 bg-accent/10'
       : toast.type === 'feedback'
         ? 'border-primary/30 bg-primary/5'
-        : 'border-secondary/30 bg-secondary/5'
+        : toast.type === 'error'
+          ? 'border-danger/30 bg-danger/5'
+          : 'border-secondary/30 bg-secondary/5'
 
   return (
     <div
@@ -68,6 +81,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       setToasts((prev) => prev.filter((x) => x.id !== id))
     }, 5000)
   }, [])
+
+  // Wire up the imperative delegate so code outside React can fire toasts.
+  useEffect(() => {
+    _addToast = add
+    return () => { _addToast = () => {} }
+  }, [add])
 
   const remove = useCallback((id: string) => {
     setToasts((prev) => prev.filter((x) => x.id !== id))

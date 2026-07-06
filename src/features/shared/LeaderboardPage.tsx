@@ -83,11 +83,11 @@ function LeaderRow({
       <div className="w-8 text-center">
         <RankBadge rank={rank} />
       </div>
-      <Avatar name={entry.profile?.full_name ?? '?'} size="sm" />
+      <Avatar name={entry.profile?.display_handle || entry.profile?.full_name || '?'} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate font-medium text-text-primary">
-            {entry.profile?.full_name ?? 'Unknown'}
+            {entry.profile?.display_handle || entry.profile?.full_name || 'Unknown'}
           </span>
           {isMe && (
             <span className="font-mono text-[9px] uppercase text-text-muted">you</span>

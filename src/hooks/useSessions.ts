@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './useAuth'
+import { localDateStr } from '@/lib/dateLocal'
 import type { Session, SessionType } from '@/types'
 
 export function useSession(sessionId: string | undefined) {
@@ -54,7 +55,7 @@ export function useSessions() {
 /** Today's session for the coach (first match on today's date), if any. */
 export function useTodaySession() {
   const { data, ...rest } = useSessions()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = localDateStr()
   const todays = data?.find((s) => s.date === today) ?? null
   return { todaySession: todays, ...rest }
 }
@@ -198,6 +199,35 @@ export function useAllSessionAssignments() {
   })
 }
 
+export function useDuplicateSession() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (session: Session) => {
+      const tomorrow = localDateStr(new Date(Date.now() + 86_400_000))
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          coach_id: user!.id,
+          title: `${session.title} (copy)`,
+          date: tomorrow,
+          type: session.type,
+          warm_up: session.warm_up,
+          main_set: session.main_set,
+          cool_down: session.cool_down,
+          notes: session.notes,
+          recurrence: 'none',
+          recurrence_end: null,
+        })
+        .select('*')
+        .single()
+      if (error) throw error
+      return data as Session
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['sessions', user?.id] }),
+  })
+}
+
 export function useMarkAttendance() {
   const { user } = useAuth()
   const qc = useQueryClient()
@@ -266,8 +296,8 @@ export function useAttendanceMatrix() {
       }
 
       const now = new Date()
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
-      const thirtyAgo = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10)
+      const monthStart = localDateStr(new Date(now.getFullYear(), now.getMonth(), 1))
+      const thirtyAgo = localDateStr(new Date(Date.now() - 30 * 86_400_000))
 
       // Sessions this month
       const sessionsThisMonth = sessions.filter((s) => s.date >= monthStart).length

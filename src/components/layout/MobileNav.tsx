@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 const PRIMARY_PATHS: Partial<Record<Role, string[]>> = {
   coach:   ['/coach', '/coach/roster', '/coach/log'],
   swimmer: ['/swimmer', '/swimmer/today', '/swimmer/times'],
-  beginner:['/beginner', '/beginner/strokes', '/beginner/log'],
+  beginner:['/beginner', '/beginner/log', '/beginner/learn'],
 }
 
 export function MobileNav({ role }: { role: Role | null }) {

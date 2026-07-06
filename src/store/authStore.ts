@@ -30,6 +30,9 @@ async function fetchProfile(userId: string): Promise<Profile | null> {
   return data as Profile | null
 }
 
+// Module-level guard so StrictMode double-invocation of init() doesn't register two listeners.
+let _authListenerAttached = false
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   profile: null,
@@ -37,6 +40,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialized: false,
 
   init: async () => {
+    if (_authListenerAttached) return
+    _authListenerAttached = true
+
     const { data } = await supabase.auth.getSession()
     const session = data.session
     const profile = session ? await fetchProfile(session.user.id) : null

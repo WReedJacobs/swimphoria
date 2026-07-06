@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Target, Plus, CheckCircle2, Trash2, Pencil } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
 import { Input, Select } from '@/components/ui/Input'
 import { ProgressBar } from '@/components/ui/ProgressBar'
@@ -19,7 +20,7 @@ type ModalMode = 'create' | 'edit'
 
 export function GoalsPage() {
   const { data: swimmer } = useMySwimmer()
-  const { data: goals } = useGoals(swimmer?.id)
+  const { data: goals, isLoading } = useGoals(swimmer?.id)
   const { data: times } = useTimes(swimmer?.id)
   const createGoal = useCreateGoal()
   const updateGoal = useUpdateGoal()
@@ -94,12 +95,17 @@ export function GoalsPage() {
           }
         />
 
-        {(goals ?? []).length === 0 ? (
+        {isLoading ? (
+          <SkeletonRows count={2} />
+        ) : (goals ?? []).length === 0 ? (
           <EmptyState icon={<Target className="h-6 w-6" />} title="No goals yet" description="Set a target time and track your progress toward it." />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {(goals ?? []).map((g) => {
-              const current = best.get(`${g.stroke}-${g.distance}`)
+              // Find the fastest time across all courses for this goal's event
+              const current = [...best.values()].filter(
+                (t) => t.stroke === g.stroke && t.distance === g.distance,
+              ).sort((a, b) => a.time_seconds - b.time_seconds)[0]
               const pct = current ? Math.min(100, (g.target_time_seconds / current.time_seconds) * 100) : 0
               const hit = current ? current.time_seconds <= g.target_time_seconds : false
               return (
@@ -110,15 +116,15 @@ export function GoalsPage() {
                       {hit && <CheckCircle2 className="h-5 w-5 text-secondary" />}
                       <button
                         onClick={() => openEdit(g)}
-                        className="flex rounded p-1 text-text-muted hover:text-text-primary"
-                        title="Edit goal"
+                        className="flex rounded p-1 text-text-muted hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        aria-label={`Edit ${g.distance}m ${g.stroke} goal`}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => setConfirmDelete(g)}
-                        className="flex rounded p-1 text-text-muted hover:text-danger"
-                        title="Delete goal"
+                        className="flex rounded p-1 text-text-muted hover:text-danger focus:outline-none focus:ring-2 focus:ring-danger/40"
+                        aria-label={`Delete ${g.distance}m ${g.stroke} goal`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
