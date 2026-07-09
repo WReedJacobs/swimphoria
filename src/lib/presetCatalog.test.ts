@@ -11,7 +11,6 @@ const VALID_LEVELS = new Set(['beginner', 'intermediate', 'elite'])
 
 const VALID_REST_TYPES = new Set(['rest_seconds', 'interval_seconds', 'css_offset', 'none'])
 
-const VALID_STROKES = new Set(['freestyle', 'backstroke', 'breaststroke', 'butterfly', 'IM', null])
 
 describe('PRESET_CATALOG seed integrity', () => {
   it('contains exactly 75 presets', () => {

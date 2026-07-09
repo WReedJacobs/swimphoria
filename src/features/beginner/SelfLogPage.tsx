@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Button } from '@/components/ui/Button'
-import { Input, Select } from '@/components/ui/Input'
+import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { BeginnerTip } from '@/components/ui/BeginnerTip'
+import { cn } from '@/lib/cn'
 import { formatTime, parseTime } from '@/lib/formatTime'
 import { localDateStr } from '@/lib/dateLocal'
-import { STROKES, DISTANCES } from '@/types'
 import { useBeginnerLogs } from './beginnerStore'
 import { useJourneyStore } from '@/store/beginnerJourneyStore'
 
@@ -20,15 +20,22 @@ function isoWeek(dateStr: string): string {
   return `${d.getFullYear()}-W${week}`
 }
 
+const POOL_SIZES = [
+  { meters: 25, label: '25m', hint: 'most local pools' },
+  { meters: 50, label: '50m', hint: 'Olympic / outdoor' },
+]
+
 export function SelfLogPage() {
   const [logs, setLogs] = useBeginnerLogs()
   const { markStep } = useJourneyStore()
   const [date, setDate] = useState(localDateStr())
-  const [stroke, setStroke] = useState<string>('freestyle')
-  const [distance, setDistance] = useState(25)
+  const [poolSize, setPoolSize] = useState(25)
+  const [laps, setLaps] = useState('')
   const [raw, setRaw] = useState('')
 
-  const valid = parseTime(raw) != null
+  const lapCount = parseInt(laps, 10)
+  const distance = !isNaN(lapCount) && lapCount > 0 ? lapCount * poolSize : 0
+  const valid = parseTime(raw) != null && distance > 0
 
   // Auto-mark journey steps based on log data
   useEffect(() => {
@@ -51,12 +58,13 @@ export function SelfLogPage() {
 
   const add = () => {
     const seconds = parseTime(raw)
-    if (seconds == null) return
+    if (seconds == null || distance <= 0) return
     setLogs((prev) => [
-      { id: `${date}-${Math.round(seconds * 100)}-${prev.length}`, date, stroke, distance, timeSeconds: seconds },
+      { id: `${date}-${Math.round(seconds * 100)}-${prev.length}`, date, stroke: 'freestyle', distance, timeSeconds: seconds },
       ...prev,
     ])
     setRaw('')
+    setLaps('')
   }
 
   const remove = (id: string) => setLogs((prev) => prev.filter((l) => l.id !== id))
@@ -73,25 +81,54 @@ export function SelfLogPage() {
         <CardHeader title="Log a swim" subtitle="Your swims are saved on this device. Create a free account to back them up." />
         <div className="space-y-4">
           <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          <div className="grid grid-cols-2 gap-3">
-            <Select label="Stroke" value={stroke} onChange={(e) => setStroke(e.target.value)}>
-              {STROKES.map((s) => (
-                <option key={s} value={s} className="capitalize">{s}</option>
+
+          {/* Pool size */}
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-text-primary">Pool length</p>
+            <div className="grid grid-cols-2 gap-2">
+              {POOL_SIZES.map(({ meters, label, hint }) => (
+                <button
+                  key={meters}
+                  type="button"
+                  onClick={() => setPoolSize(meters)}
+                  className={cn(
+                    'rounded-component border px-3 py-2.5 text-left transition-colors',
+                    poolSize === meters
+                      ? 'border-coral/50 bg-coral/10'
+                      : 'border-border bg-bg hover:border-border/80',
+                  )}
+                >
+                  <p className={cn('font-mono font-semibold tabular-nums', poolSize === meters ? 'text-coral' : 'text-text-primary')}>
+                    {label}
+                  </p>
+                  <p className="text-[11px] text-text-muted">{hint}</p>
+                </button>
               ))}
-            </Select>
-            <Select label="Distance" value={distance} onChange={(e) => setDistance(Number(e.target.value))}>
-              {DISTANCES.map((d) => (
-                <option key={d} value={d}>{d}m</option>
-              ))}
-            </Select>
+            </div>
           </div>
+
+          {/* Laps */}
+          <div>
+            <Input
+              label="How many laps did you swim?"
+              type="number"
+              min={1}
+              placeholder="e.g. 28"
+              value={laps}
+              onChange={(e) => setLaps(e.target.value)}
+              hint={distance > 0 ? `${lapCount} laps × ${poolSize}m = ${distance}m total` : undefined}
+            />
+          </div>
+
+          {/* Time */}
           <Input
-            label="Time"
-            placeholder="1:02.45 or 47.32"
+            label="How long did it take? (optional hint: mm:ss)"
+            placeholder="e.g. 25:30"
             value={raw}
             onChange={(e) => setRaw(e.target.value)}
-            error={raw.length > 0 && !valid ? 'Invalid time' : undefined}
+            error={raw.length > 0 && parseTime(raw) == null ? 'Try a format like 25:30 or 18:04.5' : undefined}
           />
+
           <Button accent="coral" className="w-full" disabled={!valid} onClick={add}>
             Save swim
           </Button>
@@ -107,7 +144,7 @@ export function SelfLogPage() {
             {logs.map((l) => (
               <li key={l.id} className="flex items-center justify-between py-2.5 text-sm">
                 <div>
-                  <span className="font-medium capitalize text-text-primary">{l.distance}m {l.stroke}</span>
+                  <span className="font-medium text-text-primary font-mono tabular-nums">{l.distance}m</span>
                   <span className="ml-2 text-xs text-text-muted font-mono tabular-nums">{new Date(l.date).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-3">
