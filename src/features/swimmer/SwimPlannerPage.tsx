@@ -1,12 +1,15 @@
 import { useState, useMemo, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, Plus, Trash2, CheckCircle2, Circle, GripVertical } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Trash2, CheckCircle2, Circle, GripVertical, Library } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { SetPicker } from '@/components/SetPicker'
+import { SavePresetModal } from '@/components/SavePresetModal'
 import { useDrills } from '@/hooks/useDrills'
+import { useMyCssResult } from '@/hooks/useCssResults'
 import {
   useMyPlans,
   useCreatePlan,
@@ -16,6 +19,8 @@ import {
   type SwimmerPlan,
 } from '@/hooks/useSwimmerPlans'
 import { calcDifficulty, formatMeters, type PlanSet, type Intensity } from '@/lib/planDifficulty'
+import { type SetPreset } from '@/lib/presetUtils'
+import type { CatalogPreset } from '@/lib/presetUtils'
 import { localDateStr } from '@/lib/dateLocal'
 import { STROKES, type Stroke } from '@/types'
 import { cn } from '@/lib/cn'
@@ -68,9 +73,10 @@ interface SetRowProps {
   drillOptions: Array<{ id: string; title: string }>
   onChange: (updated: PlanSet) => void
   onDelete: () => void
+  onSave?: () => void
 }
 
-function SetRow({ set, drillOptions, onChange, onDelete }: SetRowProps) {
+function SetRow({ set, drillOptions, onChange, onDelete, onSave }: SetRowProps) {
   function patch<K extends keyof PlanSet>(key: K, value: PlanSet[K]) {
     onChange({ ...set, [key]: value })
   }
@@ -195,6 +201,17 @@ function SetRow({ set, drillOptions, onChange, onDelete }: SetRowProps) {
         <span className="ml-auto font-mono text-xs text-text-muted">
           {formatMeters(set.distance * set.reps)}
         </span>
+
+        {/* Save as preset */}
+        {onSave && (
+          <button
+            onClick={onSave}
+            className="flex h-7 w-7 items-center justify-center rounded-component text-text-muted hover:bg-primary/10 hover:text-primary"
+            title="Save as preset"
+          >
+            <Library className="h-3.5 w-3.5" />
+          </button>
+        )}
 
         {/* Delete */}
         <button
@@ -322,11 +339,15 @@ interface PlanModalProps {
 
 function PlanModal({ open, initial, onClose }: PlanModalProps) {
   const { data: drills = [] } = useDrills()
+  const { data: cssResult } = useMyCssResult()
   const create = useCreatePlan()
   const update = useUpdatePlan()
   const deletePlan = useDeletePlan()
 
   const [draft, setDraft] = useState<BuilderState>(initial)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [saveSet, setSaveSet] = useState<PlanSet | null>(null)
 
   // Sync when initial changes (switching between plans)
   const [prevInitial, setPrevInitial] = useState(initial)
@@ -341,6 +362,47 @@ function PlanModal({ open, initial, onClose }: PlanModalProps) {
 
   function addSet() {
     setDraft((s) => ({ ...s, sets: [...s.sets, newSet()] }))
+  }
+
+  function insertFromPreset(preset: SetPreset | CatalogPreset) {
+    if (preset.structure && preset.structure.length > 1) {
+      // Multi-leg structure → one PlanSet per leg
+      const legs = preset.structure.map((leg) => ({
+        ...newSet(),
+        name: leg.note ? `${preset.title} — ${leg.note}` : preset.title,
+        stroke: (preset.stroke as PlanSet['stroke']) ?? null,
+        distance: leg.distance,
+        reps: leg.reps,
+        rest_seconds: preset.rest_type === 'rest_seconds' && preset.rest_value != null
+          ? Number(preset.rest_value)
+          : 30,
+        intensity: 'moderate' as Intensity,
+      }))
+      setDraft((s) => ({ ...s, sets: [...s.sets, ...legs] }))
+    } else {
+      // Uniform preset → single PlanSet
+      const rest =
+        preset.rest_type === 'rest_seconds' && preset.rest_value != null
+          ? Number(preset.rest_value)
+          : preset.rest_type === 'interval_seconds' && preset.rest_value != null
+            ? Math.max(10, Number(preset.rest_value) - Math.round((preset.distance / 100) * (cssResult?.pace_per_100 ?? 100)))
+            : 30
+      setDraft((s) => ({
+        ...s,
+        sets: [
+          ...s.sets,
+          {
+            ...newSet(),
+            name: preset.title,
+            stroke: (preset.stroke as PlanSet['stroke']) ?? null,
+            distance: preset.structure?.[0]?.distance ?? preset.distance,
+            reps: preset.structure?.[0]?.reps ?? preset.reps,
+            rest_seconds: Math.max(5, rest),
+            intensity: 'moderate' as Intensity,
+          },
+        ],
+      }))
+    }
   }
 
   function updateSet(idx: number, updated: PlanSet) {
@@ -407,14 +469,24 @@ function PlanModal({ open, initial, onClose }: PlanModalProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-text-primary">Sets</p>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<Plus className="h-3.5 w-3.5" />}
-              onClick={addSet}
-            >
-              Add set
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Library className="h-3.5 w-3.5" />}
+                onClick={() => setPickerOpen(true)}
+              >
+                From library
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Plus className="h-3.5 w-3.5" />}
+                onClick={addSet}
+              >
+                Add set
+              </Button>
+            </div>
           </div>
 
           {draft.sets.length === 0 ? (
@@ -434,6 +506,7 @@ function PlanModal({ open, initial, onClose }: PlanModalProps) {
                   drillOptions={drills.map((d) => ({ id: d.id, title: d.title }))}
                   onChange={(updated) => updateSet(i, updated)}
                   onDelete={() => removeSet(i)}
+                  onSave={() => { setSaveSet(set); setSaveOpen(true) }}
                 />
               ))}
             </div>
@@ -442,6 +515,29 @@ function PlanModal({ open, initial, onClose }: PlanModalProps) {
 
         {/* Live difficulty */}
         {draft.sets.length > 0 && <DifficultyPanel sets={draft.sets} />}
+
+        {/* Set library modals */}
+        <SetPicker
+          open={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onInsert={(p) => insertFromPreset(p)}
+          cssPacePer100={cssResult?.pace_per_100 ?? null}
+          onSaveNew={() => { setPickerOpen(false); setSaveSet(null); setSaveOpen(true) }}
+        />
+        <SavePresetModal
+          open={saveOpen}
+          onClose={() => { setSaveOpen(false); setSaveSet(null) }}
+          prefill={saveSet ? {
+            title: saveSet.name,
+            category: 'endurance',
+            level: 'intermediate',
+            stroke: saveSet.stroke ?? undefined,
+            reps: saveSet.reps,
+            distance: saveSet.distance,
+            rest_type: 'rest_seconds',
+            rest_value: saveSet.rest_seconds,
+          } : undefined}
+        />
 
         {/* Notes */}
         <Textarea

@@ -1,11 +1,13 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, BookOpen, Gauge, Repeat2 } from 'lucide-react'
+import { ArrowLeft, Save, BookOpen, Gauge, Repeat2, Library } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { SetPicker } from '@/components/SetPicker'
+import { SavePresetModal } from '@/components/SavePresetModal'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useCreateSession, useUpdateSession, useSession, useSessionAssignments } from '@/hooks/useSessions'
@@ -17,6 +19,9 @@ import type { SessionType, Recurrence } from '@/types'
 import { formatTime, parseTime } from '@/lib/formatTime'
 import { localDateStr } from '@/lib/dateLocal'
 import { buildSetTarget } from '@/lib/cssCalculator'
+import { presetTotalMeters, presetPattern, renderRest } from '@/lib/presetUtils'
+import type { SetPreset, PresetCategory } from '@/lib/presetUtils'
+import type { CatalogPreset } from '@/lib/presetUtils'
 
 function generateDates(start: string, pattern: Exclude<Recurrence, 'none'>, end: string): string[] {
   const startD = new Date(start + 'T00:00:00')
@@ -80,6 +85,11 @@ export function SessionBuilder() {
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const [paceOpen, setPaceOpen] = useState(false)
+  const [setPickerBlock, setSetPickerBlock] = useState<'warm_up' | 'main_set' | 'cool_down' | null>(null)
+  const [savePresetBlock, setSavePresetBlock] = useState<'warm_up' | 'main_set' | 'cool_down' | null>(null)
+  const [warmUpMeters, setWarmUpMeters] = useState(0)
+  const [mainSetMeters, setMainSetMeters] = useState(0)
+  const [coolDownMeters, setCoolDownMeters] = useState(0)
   const [cssPace, setCssPace] = useState('1:30')
   const [reps, setReps] = useState(8)
   const [setDistance, setSetDistance] = useState(100)
@@ -148,6 +158,40 @@ export function SessionBuilder() {
     if (drillPicker === 'warm_up') setWarmUp((p) => (p ? `${p}\n${text}` : text))
     else if (drillPicker === 'cool_down') setCoolDown((p) => (p ? `${p}\n${text}` : text))
     setDrillPicker(null)
+  }
+
+  const insertSet = (preset: SetPreset | CatalogPreset) => {
+    if (!setPickerBlock) return
+    const totalM = presetTotalMeters(preset)
+    const pat = presetPattern(preset)
+    const strokeStr = preset.stroke ? ` ${preset.stroke}` : ''
+    const restStr = renderRest(preset) // generic — coach view, no CSS personalisation
+    const line = `${pat}${strokeStr}${restStr ? ` · ${restStr}` : ''} — ${preset.title}`
+
+    if (setPickerBlock === 'warm_up') {
+      setWarmUp((p) => (p ? `${p}\n${line}` : line))
+      setWarmUpMeters((m) => m + totalM)
+    } else if (setPickerBlock === 'main_set') {
+      setMainSet((p) => (p ? `${p}\n${line}` : line))
+      setMainSetMeters((m) => m + totalM)
+    } else {
+      setCoolDown((p) => (p ? `${p}\n${line}` : line))
+      setCoolDownMeters((m) => m + totalM)
+    }
+  }
+
+  const blockText = (block: 'warm_up' | 'main_set' | 'cool_down') =>
+    block === 'warm_up' ? warmUp : block === 'main_set' ? mainSet : coolDown
+
+  const savePresetPrefill = (block: 'warm_up' | 'main_set' | 'cool_down'): Partial<CatalogPreset> => {
+    const cat: PresetCategory =
+      block === 'warm_up' ? 'warmup' : block === 'cool_down' ? 'cooldown' : 'endurance'
+    const text = blockText(block)
+    return {
+      category: cat,
+      level: 'intermediate',
+      description: text.slice(0, 120) || undefined,
+    }
   }
 
   const save = async () => {
@@ -277,18 +321,45 @@ export function SessionBuilder() {
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-sm font-medium text-text-primary">Warm-up</label>
-                  <Button variant="ghost" size="sm" leftIcon={<BookOpen className="h-4 w-4" />} onClick={() => setDrillPicker('warm_up')}>
-                    Add drill
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" leftIcon={<Library className="h-3.5 w-3.5" />} onClick={() => setSetPickerBlock('warm_up')}>
+                      Insert set
+                    </Button>
+                    <Button variant="ghost" size="sm" leftIcon={<BookOpen className="h-3.5 w-3.5" />} onClick={() => setDrillPicker('warm_up')}>
+                      Add drill
+                    </Button>
+                  </div>
                 </div>
                 <Textarea placeholder="400m easy free, 200m kick" value={warmUp} onChange={(e) => setWarmUp(e.target.value)} />
+                {warmUpMeters > 0 && (
+                  <p className="mt-1 font-mono text-[11px] text-text-muted">
+                    ≈ {warmUpMeters}m from inserted sets
+                    {warmUp && (
+                      <button className="ml-2 text-text-muted hover:text-text-secondary" onClick={() => { setSavePresetBlock('warm_up') }}>
+                        · save as preset
+                      </button>
+                    )}
+                  </p>
+                )}
+                {warmUpMeters === 0 && warmUp && (
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    <button className="hover:text-text-secondary" onClick={() => { setSavePresetBlock('warm_up') }}>
+                      Save as preset
+                    </button>
+                  </p>
+                )}
               </div>
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-sm font-medium text-text-primary">Main set</label>
-                  <Button variant="ghost" size="sm" leftIcon={<Gauge className="h-4 w-4" />} onClick={() => setPaceOpen(true)}>
-                    Pace set
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" leftIcon={<Library className="h-3.5 w-3.5" />} onClick={() => setSetPickerBlock('main_set')}>
+                      Insert set
+                    </Button>
+                    <Button variant="ghost" size="sm" leftIcon={<Gauge className="h-4 w-4" />} onClick={() => setPaceOpen(true)}>
+                      Pace set
+                    </Button>
+                  </div>
                 </div>
                 <Textarea
                   placeholder="8 × 50m on 1:20"
@@ -296,15 +367,54 @@ export function SessionBuilder() {
                   onChange={(e) => setMainSet(e.target.value)}
                   rows={4}
                 />
+                {mainSetMeters > 0 && (
+                  <p className="mt-1 font-mono text-[11px] text-text-muted">
+                    ≈ {mainSetMeters}m from inserted sets
+                    {mainSet && (
+                      <button className="ml-2 text-text-muted hover:text-text-secondary" onClick={() => { setSavePresetBlock('main_set') }}>
+                        · save as preset
+                      </button>
+                    )}
+                  </p>
+                )}
+                {mainSetMeters === 0 && mainSet && (
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    <button className="hover:text-text-secondary" onClick={() => { setSavePresetBlock('main_set') }}>
+                      Save as preset
+                    </button>
+                  </p>
+                )}
               </div>
               <div>
                 <div className="mb-1 flex items-center justify-between">
                   <label className="text-sm font-medium text-text-primary">Cool-down</label>
-                  <Button variant="ghost" size="sm" leftIcon={<BookOpen className="h-4 w-4" />} onClick={() => setDrillPicker('cool_down')}>
-                    Add drill
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" leftIcon={<Library className="h-3.5 w-3.5" />} onClick={() => setSetPickerBlock('cool_down')}>
+                      Insert set
+                    </Button>
+                    <Button variant="ghost" size="sm" leftIcon={<BookOpen className="h-3.5 w-3.5" />} onClick={() => setDrillPicker('cool_down')}>
+                      Add drill
+                    </Button>
+                  </div>
                 </div>
                 <Textarea placeholder="200m easy backstroke" value={coolDown} onChange={(e) => setCoolDown(e.target.value)} />
+                {coolDownMeters > 0 && (
+                  <p className="mt-1 font-mono text-[11px] text-text-muted">
+                    ≈ {coolDownMeters}m from inserted sets
+                    {coolDown && (
+                      <button className="ml-2 text-text-muted hover:text-text-secondary" onClick={() => { setSavePresetBlock('cool_down') }}>
+                        · save as preset
+                      </button>
+                    )}
+                  </p>
+                )}
+                {coolDownMeters === 0 && coolDown && (
+                  <p className="mt-1 text-[11px] text-text-muted">
+                    <button className="hover:text-text-secondary" onClick={() => { setSavePresetBlock('cool_down') }}>
+                      Save as preset
+                    </button>
+                  </p>
+                )}
               </div>
               <Textarea label="Notes" placeholder="Focus area, intentions…" value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
@@ -361,6 +471,23 @@ export function SessionBuilder() {
           </Button>
         </div>
       </div>
+
+      <SetPicker
+        open={setPickerBlock !== null}
+        onClose={() => setSetPickerBlock(null)}
+        onInsert={insertSet}
+        defaultCategory={
+          setPickerBlock === 'warm_up' ? 'warmup' :
+          setPickerBlock === 'cool_down' ? 'cooldown' : undefined
+        }
+        onSaveNew={() => { setSetPickerBlock(null); setSavePresetBlock('main_set') }}
+      />
+
+      <SavePresetModal
+        open={savePresetBlock !== null}
+        onClose={() => setSavePresetBlock(null)}
+        prefill={savePresetBlock ? savePresetPrefill(savePresetBlock) : undefined}
+      />
 
       <Modal open={drillPicker !== null} onClose={() => setDrillPicker(null)} title="Pick a drill">
         <div className="space-y-2">
