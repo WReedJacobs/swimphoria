@@ -11,6 +11,8 @@ import {
   ClipboardList,
   Settings,
   BookOpen,
+  Award,
+  Compass,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -51,8 +53,10 @@ const swimmerNav: NavItem[] = [
 const beginnerNav: NavItem[] = [
   { label: 'My Journey', mobileLabel: 'Journey', to: '/beginner', icon: LayoutDashboard },
   { label: 'Log a Swim', mobileLabel: 'Log', to: '/beginner/log', icon: Timer },
+  { label: 'Milestones', to: '/beginner/milestones', icon: Award },
   { label: 'Learn', to: '/beginner/learn', icon: BookOpen },
   { label: 'Program', to: '/beginner/program', icon: CalendarDays },
+  { label: 'Going Solo', mobileLabel: 'Solo', to: '/beginner/self-guided', icon: Compass },
   { label: 'Find a Coach', mobileLabel: 'Coach', to: '/beginner/find-coach', icon: Users },
   { label: 'Settings', to: '/beginner/settings', icon: Settings },
 ]
