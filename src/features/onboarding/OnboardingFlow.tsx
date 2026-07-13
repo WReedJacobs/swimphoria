@@ -22,7 +22,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/store/authStore'
 import { STROKES, type Level } from '@/types'
-import { useOnboardingDraft, LEVEL_TEMPLATES, pacePer100, type OnboardingRole, type StartingPoint } from './onboardingStore'
+import { useOnboardingDraft, applyOnboardingDraft, LEVEL_TEMPLATES, pacePer100, type OnboardingRole, type StartingPoint } from './onboardingStore'
+import { GoogleSignInButton } from '@/features/auth/GoogleSignInButton'
 
 const v = (name: string, alpha?: number) =>
   alpha == null ? `rgb(var(${name}))` : `rgb(var(${name}) / ${alpha})`
@@ -150,39 +151,11 @@ export function OnboardingFlow() {
         return
       }
 
-      const role = draft.onboardingRole ?? 'swimmer'
-      try {
-        await useAuthStore.getState().setRole(role, role === 'swimmer' ? (draft.level ?? undefined) : undefined)
-      } catch {
-        // non-fatal
-      }
-
-      // For new swimmers, create a self-managed swimmer record and save the first swim
-      if (mode === 'signup' && role === 'swimmer') {
-        const userId = useAuthStore.getState().session?.user.id
-        if (userId) {
-          const { data: swimmerRow } = await supabase
-            .from('swimmers')
-            .insert({
-              coach_id: userId,
-              profile_id: userId,
-              display_name: name.trim() || 'Swimmer',
-              level: draft.level ?? 'beginner',
-            })
-            .select('id')
-            .single()
-
-          if (swimmerRow) {
-            await supabase.from('times').insert({
-              swimmer_id: swimmerRow.id,
-              stroke: draft.session.stroke,
-              distance: draft.session.distanceMeters,
-              time_seconds: draft.session.timeSeconds,
-              is_pb: true,
-              is_self_logged: true,
-            })
-          }
-        }
+      const userId = useAuthStore.getState().session?.user.id
+      if (userId) {
+        await applyOnboardingDraft(userId, name.trim() || 'Swimmer', draft, {
+          createFirstSwim: mode === 'signup',
+        })
       }
 
       next()
@@ -547,6 +520,8 @@ export function OnboardingFlow() {
                 </div>
               </Card>
             )}
+
+            <GoogleSignInButton />
 
             <div className="space-y-3">
               {mode === 'signup' && (

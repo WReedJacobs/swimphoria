@@ -1,4 +1,6 @@
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 import type { Level, Stroke } from '@/types'
 
 export type OnboardingRole = 'coach' | 'swimmer'
@@ -72,4 +74,49 @@ export function useOnboardingDraft() {
 export function pacePer100(distanceMeters: number, timeSeconds: number): number | null {
   if (distanceMeters <= 0 || timeSeconds <= 0) return null
   return (timeSeconds / distanceMeters) * 100
+}
+
+/**
+ * Applies an onboarding draft's role/level/first-swim to a just-created
+ * account. Shared between OnboardingFlow's email/password submitAccount()
+ * and AuthCallbackPage's post-Google-redirect handling — the draft itself
+ * is localStorage-backed (useLocalStorage), so it survives the full-page
+ * OAuth round trip and both paths need to apply it identically.
+ */
+export async function applyOnboardingDraft(
+  userId: string,
+  displayName: string,
+  draft: OnboardingDraft,
+  { createFirstSwim }: { createFirstSwim: boolean },
+): Promise<void> {
+  const role = draft.onboardingRole ?? 'swimmer'
+  try {
+    await useAuthStore.getState().setRole(role, role === 'swimmer' ? (draft.level ?? undefined) : undefined)
+  } catch {
+    // non-fatal
+  }
+
+  if (createFirstSwim && role === 'swimmer') {
+    const { data: swimmerRow } = await supabase
+      .from('swimmers')
+      .insert({
+        coach_id: userId,
+        profile_id: userId,
+        display_name: displayName || 'Swimmer',
+        level: draft.level ?? 'beginner',
+      })
+      .select('id')
+      .single()
+
+    if (swimmerRow) {
+      await supabase.from('times').insert({
+        swimmer_id: swimmerRow.id,
+        stroke: draft.session.stroke,
+        distance: draft.session.distanceMeters,
+        time_seconds: draft.session.timeSeconds,
+        is_pb: true,
+        is_self_logged: true,
+      })
+    }
+  }
 }
