@@ -161,27 +161,25 @@ export function SettingsPage() {
     setDeleting(true)
     try {
       if (profile?.role === 'swimmer') {
-        const { data: sw } = await supabase
-          .from('swimmers')
-          .select('id')
-          .eq('profile_id', user.id)
-          .maybeSingle()
-        if (sw) {
-          await Promise.all([
-            supabase.from('times').delete().eq('swimmer_id', sw.id),
-            supabase.from('goals').delete().eq('swimmer_id', sw.id),
-          ])
-        }
+        // swimmers.id cascades to times/goals/feedback/bookings/session_assignments/
+        // css_results (all FK'd ON DELETE CASCADE to swimmers) — deleting this one
+        // row cleans up everything else, no per-table deletes needed.
+        await supabase.from('swimmers').delete().eq('profile_id', user.id)
       } else {
-        // Coach — delete owned data
+        // Coach — delete owned data. Deleting the squad's `swimmers` rows cascades
+        // their times/goals/feedback/bookings/session_assignments/css_results too
+        // (same cascade the schema already declares for a deleted coach profile).
         await Promise.all([
           supabase.from('times').delete().eq('coach_id', user.id),
           supabase.from('sessions').delete().eq('coach_id', user.id),
           supabase.from('feedback').delete().eq('coach_id', user.id),
+          supabase.from('bookings').delete().eq('coach_id', user.id),
+          supabase.from('swimmers').delete().eq('coach_id', user.id),
         ])
       }
       await Promise.all([
         supabase.from('messages').delete().eq('sender_id', user.id),
+        supabase.from('messages').delete().eq('recipient_id', user.id),
       ])
       // Clear PII from profile; full auth deletion requires a server-side admin call
       await supabase.from('profiles').update({

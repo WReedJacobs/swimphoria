@@ -12,7 +12,7 @@
 |----------|-------|--------|
 | CRITICAL | 2 | Fixed in 017 + frontend |
 | HIGH | 3 | Fixed in 017 + frontend |
-| MEDIUM | 3 | Documented — not yet fixed |
+| MEDIUM | 3 | Fixed 2026-07-13 — see notes below |
 | LOW | 2 | Fixed in frontend |
 
 ---
@@ -107,6 +107,8 @@ The profile is anonymized (`full_name: '[deleted]'`) but the swimmers row persis
 
 **Recommendation:** Add `swimmers.delete().eq('profile_id', user.id)` to the swimmer deletion path. Consider adding `ON DELETE CASCADE` to `css_results` and `session_assignments` FKs (currently `ON DELETE CASCADE` for swimmer_id on session_assignments, but not css_results).
 
+**Fixed 2026-07-13:** `session_assignments`, `css_results`, `feedback`, `bookings`, and `goals` already cascade from `swimmers.id` (`ON DELETE CASCADE`, checked directly against schema) — so the fix was simply to delete the `swimmers` row itself rather than each dependent table by hand. Swimmer path now does exactly that; coach path now also deletes squad `swimmers` rows plus `bookings`. Also added `messages.recipient_id` cleanup (only `sender_id` was handled before) for both roles. This surfaced a real RLS gap: no policy ever let a swimmer delete their own `swimmers` row, so the fix would have silently affected zero rows — added in `022_swimmer_deletes_own_row.sql`.
+
 ---
 
 ### M-2 · `Level` type mismatch: TypeScript has 'advanced', SQL does not
@@ -127,6 +129,8 @@ create type swim_level as enum ('beginner', 'intermediate', 'elite');
 
 **Recommendation:** Either remove `'advanced'` from the TypeScript union, or add it to the SQL enum with `ALTER TYPE swim_level ADD VALUE 'advanced'`.
 
+**Fixed 2026-07-13:** Migrations 005–021 (which had never actually been applied to the live project before this date, despite being written earlier) included exactly this `ALTER TYPE swim_level ADD VALUE 'advanced'` in `011_seed_drills.sql` — but in the same transaction as an `INSERT` using that value, which Postgres forbids. Moved the `ALTER TYPE` to the end of `010_swimmer_plans.sql` so it commits separately first. The SQL enum now has `'advanced'`, matching TypeScript.
+
 ---
 
 ### M-3 · `swimmer_stats.is_public` update has no UX for the failure case
@@ -136,6 +140,8 @@ create type swim_level as enum ('beginner', 'intermediate', 'elite');
 The `useToggleStatsPublic` mutation calls `.update({ is_public })` with no error handling. If RLS rejects the update (e.g., wrong user), zero rows are affected silently and the UI toggle snaps back (if using optimistic updates) or appears stuck.
 
 **Recommendation:** Chain `.select('id').single()` and throw if null, or wrap with `assertAffected` from `src/lib/mutate.ts` with `{ count: 'exact' }`.
+
+**Fixed 2026-07-13:** `useSetPublic` (the hook's current name — `useToggleStatsPublic` above appears to predate a rename) now passes `{ count: 'exact' }` and throws when `count === 0`, matching the pattern already used in `useSetPresets.ts`. No further UI wiring was needed: `main.tsx` already has a global `MutationCache.onError` that toasts any mutation error, so this alone fixes the silent-failure UX.
 
 ---
 

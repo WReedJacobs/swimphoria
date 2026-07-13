@@ -180,11 +180,12 @@ export function useSetPublic() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (isPublic: boolean) => {
-      const { error } = await supabase
+      const { count, error } = await supabase
         .from('profiles')
-        .update({ is_public: isPublic })
+        .update({ is_public: isPublic }, { count: 'exact' })
         .eq('id', user!.id)
       if (error) throw error
+      if (count === 0) throw new Error('Could not update visibility — try signing in again.')
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['auth', 'profile'] }),
   })
