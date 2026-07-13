@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
   Lock,
   MapPin,
+  DoorOpen,
+  Wind,
   Gauge,
   Library,
   Plus,
@@ -31,6 +33,8 @@ import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
   MapPin,
+  DoorOpen,
+  Wind,
   Gauge,
   Library,
   Plus,
@@ -121,10 +125,18 @@ export function JourneyPage() {
   const [logs] = useBeginnerLogs()
   const [weeklyGoalM, setWeeklyGoalM] = useBeginnerGoal()
 
+  // Previously the *only* way to open GraduationModal was completing all 12
+  // steps (allDone && !graduationPromptSeen) — no manual "I'm ready now" or
+  // "skip ahead" path existed independent of that. This makes the modal
+  // openable on demand too; dismissing it (either path) always sets
+  // graduationPromptSeen via onClose, which resets this back to false.
+  const [forceOpen, setForceOpen] = useState(false)
+
   const totalSteps = ALL_STEP_IDS.length
   const doneCount = completedSteps.length
   const overallPct = Math.round((doneCount / totalSteps) * 100)
   const allDone = isAllComplete()
+  const graduationOpen = (allDone && !graduationPromptSeen) || forceOpen
 
   const distanceThisWeek = useMemo(() => {
     const weekStart = new Date()
@@ -138,7 +150,32 @@ export function JourneyPage() {
 
   return (
     <div className="space-y-8">
-      <SectionHeader kicker="My Journey" />
+      <SectionHeader
+        kicker="My Journey"
+        action={
+          <button
+            type="button"
+            onClick={() => setForceOpen(true)}
+            className="text-xs font-medium text-text-muted transition-colors hover:text-coral"
+          >
+            Skip beginner mode →
+          </button>
+        }
+      />
+
+      {/* Persistent nudge once they've seen (and dismissed) the graduation
+          prompt at least once — otherwise there's no way back to it short of
+          re-completing every step (it only auto-opens once). */}
+      {graduationPromptSeen && !allDone && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-secondary/30 bg-secondary/5 px-4 py-3">
+          <p className="text-sm font-medium text-text-primary">
+            Ready to level up? You can become a Swimmer any time.
+          </p>
+          <Button size="sm" rightIcon={<ArrowRight className="h-3.5 w-3.5" />} onClick={() => setForceOpen(true)}>
+            Become a Swimmer
+          </Button>
+        </div>
+      )}
 
       {/* Start-here prompt — only when brand new */}
       {logs.length === 0 && doneCount === 0 && (
@@ -342,7 +379,7 @@ export function JourneyPage() {
         </Link>
       </Card>
 
-      <GraduationModal open={allDone && !graduationPromptSeen} />
+      <GraduationModal open={graduationOpen} onClose={() => setForceOpen(false)} />
     </div>
   )
 }

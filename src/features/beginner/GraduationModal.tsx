@@ -15,7 +15,7 @@ const SWIMMER_PERKS = [
   'Achievements and milestones',
 ]
 
-export function GraduationModal({ open }: { open: boolean }) {
+export function GraduationModal({ open, onClose }: { open: boolean; onClose?: () => void }) {
   const { user, profile, setRole } = useAuth()
   const { setGraduationSeen } = useJourneyStore()
   const navigate = useNavigate()
@@ -106,6 +106,7 @@ export function GraduationModal({ open }: { open: boolean }) {
 
   function handleDismiss() {
     setGraduationSeen()
+    onClose?.()
   }
 
   return (
