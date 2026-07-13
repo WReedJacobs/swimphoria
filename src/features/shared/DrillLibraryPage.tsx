@@ -8,6 +8,7 @@ import { Badge, LevelBadge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useDrills } from '@/hooks/useDrills'
 import { useAuth } from '@/hooks/useAuth'
+import { useJourneyStore } from '@/store/beginnerJourneyStore'
 import { STROKES } from '@/types'
 import type { Drill, Stroke, Level } from '@/types'
 
@@ -18,6 +19,17 @@ export function DrillLibraryPage() {
   const { profile } = useAuth()
   const [searchParams] = useSearchParams()
   const usePlain = profile?.role === 'beginner' || profile?.level === 'beginner' || !profile
+  const markStep = useJourneyStore((s) => s.markStep)
+
+  // This page is shared across coach/swimmer/beginner and has no GuideFooter
+  // (unlike every other guide page), so the journey step for it — browse_drills
+  // — could never be marked complete, permanently blocking the Explorer stage
+  // (and everything downstream: Learner, Ready, GraduationModal never appear).
+  // Auto-mark on visit rather than adding a "mark as read" affordance to a
+  // page that isn't really a reading guide — matches "browse" intent.
+  useEffect(() => {
+    if (usePlain) markStep('browse_drills')
+  }, [usePlain, markStep])
 
   const [query, setQuery] = useState('')
   const [stroke, setStroke] = useState<Stroke | 'all'>('all')

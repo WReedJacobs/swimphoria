@@ -51,7 +51,7 @@ export const JOURNEY_STAGES: JourneyStage[] = [
         id: 'browse_drills',
         label: 'Browse the Drill Library',
         description: 'See the drills coaches use to improve technique',
-        href: '/beginner/drills',
+        href: '/beginner/learn/drills',
         icon: 'Library',
       },
     ],
@@ -131,5 +131,5 @@ export const GUIDE_STEP_MAP: Record<string, string> = {
   '/beginner/learn/first-visit': 'read_first_visit',
   '/beginner/learn/breathing': 'read_breathing',
   '/beginner/learn/training-basics': 'read_training_basics',
-  '/beginner/drills': 'browse_drills',
+  '/beginner/learn/drills': 'browse_drills',
 }
