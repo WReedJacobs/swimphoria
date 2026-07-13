@@ -95,6 +95,23 @@ export function useUpdateSwimmer() {
   })
 }
 
+/** Coach: send an account invite to a swimmer with an email on file. */
+export function useInviteSwimmer() {
+  const { user } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (swimmerId: string) => {
+      const { error } = await supabase.functions.invoke('invite-swimmer', {
+        body: { swimmerId, redirectTo: `${window.location.origin}/auth/accept-invite` },
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['swimmers', user?.id] })
+    },
+  })
+}
+
 export function useDeleteSwimmer() {
   const { user } = useAuth()
   const qc = useQueryClient()

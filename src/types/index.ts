@@ -53,6 +53,7 @@ export interface Swimmer {
   profile_id: string | null
   display_name: string
   invite_email: string | null
+  invited_at: string | null
   squad: string | null
   level: Level
   notes: string | null

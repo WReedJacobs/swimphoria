@@ -63,6 +63,6 @@ Sky-blue primary (`#0EA5E9`), emerald progress (`#10B981`), amber for PBs (`#F59
 
 ## Notes / next steps
 
-- **Inviting swimmers by email** currently stores a `display_name` + `invite_email` on the swimmer row; wiring the actual account invite (Supabase admin invite + linking `profile_id`) is a follow-up.
-- The production bundle is a single chunk (~1 MB) — add route-level `React.lazy` code-splitting before launch.
-- Beginner self-logs live in `localStorage`; syncing them to Supabase on sign-in is stubbed in the UI copy but not yet implemented.
+- ~~Inviting swimmers by email~~ — **done.** `invite-swimmer` edge function calls `auth.admin.inviteUserByEmail`; `023_swimmer_invite.sql` links the `swimmers` row and sets role on signup. Deploy with `supabase functions deploy invite-swimmer` (needs a Supabase personal access token, not yet done as of this note).
+- ~~Route-level code-splitting~~ — already done, every route in `App.tsx` is `React.lazy`.
+- ~~Beginner self-logs sync~~ — **done.** `GraduationModal` now writes localStorage swims into `times` (creating a self-managed `swimmers` row if needed) before the role change to `swimmer`.

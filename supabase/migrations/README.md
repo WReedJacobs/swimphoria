@@ -21,3 +21,5 @@ Supabase dashboard's migration history.
 | 011_seed_drills.sql | Seed 45 global drills + add `focus` column + `advanced` level |
 | … | _(table not kept current past 011 — see filenames in this directory)_ |
 | 021_google_oauth_avatar.sql | Copy Google profile photo into `profiles.avatar_url` on signup/login |
+| 022_swimmer_deletes_own_row.sql | DELETE policy so a swimmer can remove their own `swimmers` row (account deletion) |
+| 023_swimmer_invite.sql | `swimmers.invited_at`; `handle_new_user` links an invited swimmer row + sets role on signup |

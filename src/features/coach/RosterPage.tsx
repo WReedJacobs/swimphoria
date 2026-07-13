@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Plus, Users, Search, Timer, Copy, Check, RefreshCw,
-  Pencil, Trash2, ChevronDown,
+  Pencil, Trash2, ChevronDown, Mail,
 } from 'lucide-react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { AddSwimmerModal } from './AddSwimmerModal'
-import { useSwimmers, useUpdateSwimmer, useDeleteSwimmer } from '@/hooks/useSwimmers'
+import { useSwimmers, useUpdateSwimmer, useDeleteSwimmer, useInviteSwimmer } from '@/hooks/useSwimmers'
 import { useTimes } from '@/hooks/useTimes'
 import { useMyJoinCode } from '@/hooks/useJoinCode'
 import { formatTime } from '@/lib/formatTime'
@@ -168,13 +168,18 @@ function SwimmerCard({
   onEdit,
   onEditSquad,
   onDelete,
+  onInvite,
+  inviting,
 }: {
   s: Swimmer
   latestTime: string | undefined
   onEdit: () => void
   onEditSquad: () => void
   onDelete: () => void
+  onInvite: () => void
+  inviting: boolean
 }) {
+  const canInvite = !s.profile_id && Boolean(s.invite_email)
   return (
     <Card className="group flex items-center gap-3">
       <Avatar name={swimmerName(s)} />
@@ -203,6 +208,18 @@ function SwimmerCard({
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        {canInvite && (
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Mail className="h-4 w-4" />}
+            loading={inviting}
+            onClick={onInvite}
+            title={s.invited_at ? `Invited ${new Date(s.invited_at).toLocaleDateString()} — resend?` : 'Email this swimmer an invite to create their own account'}
+          >
+            {s.invited_at ? 'Resend invite' : 'Invite'}
+          </Button>
+        )}
         <Link to="/coach/log">
           <Button variant="outline" size="sm" leftIcon={<Timer className="h-4 w-4" />}>
             Log
@@ -233,6 +250,7 @@ export function RosterPage() {
   const { data: swimmers, isLoading } = useSwimmers()
   const { data: times } = useTimes()
   const deleteSwimmer = useDeleteSwimmer()
+  const inviteSwimmer = useInviteSwimmer()
   const [modal, setModal] = useState(false)
   const [editSwimmer, setEditSwimmer] = useState<Swimmer | null>(null)
   const [editSquadSwimmer, setEditSquadSwimmer] = useState<Swimmer | null>(null)
@@ -301,6 +319,8 @@ export function RosterPage() {
       onEdit={() => setEditSwimmer(s)}
       onEditSquad={() => setEditSquadSwimmer(s)}
       onDelete={() => setConfirmDelete(s)}
+      onInvite={() => inviteSwimmer.mutate(s.id)}
+      inviting={inviteSwimmer.isPending && inviteSwimmer.variables === s.id}
     />
   )
 
