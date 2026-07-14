@@ -17,6 +17,7 @@ function makeTime(overrides: Partial<SwimTime>): SwimTime {
     is_self_logged: false,
     recorded_at: '2024-01-01T00:00:00Z',
     notes: null,
+    rpe: null,
     ...overrides,
   }
 }

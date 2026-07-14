@@ -58,6 +58,10 @@ export interface Swimmer {
   level: Level
   notes: string | null
   created_at: string
+  // Training availability — how the goal-race plan generator schedules sessions.
+  days_per_week: number | null
+  session_minutes: number | null
+  preferred_days: string[] | null
   // Joined / denormalised for UI convenience
   profile?: Profile | null
 }
@@ -82,6 +86,11 @@ export interface Session {
   recurrence: Recurrence
   recurrence_end: string | null
   created_at: string
+  // Goal-race training plan linkage — null for ordinary, manually-authored sessions.
+  goal_race_id: string | null
+  plan_week_number: number | null
+  plan_phase: PlanPhase | null
+  plan_status: PlanStatus
 }
 
 export interface SessionAssignment {
@@ -106,6 +115,8 @@ export interface SwimTime {
   is_self_logged: boolean
   recorded_at: string
   notes: string | null
+  /** Rate of perceived exertion, 1-10. Optional — training-load proxy. */
+  rpe: number | null
 }
 
 export interface Split {
@@ -167,6 +178,81 @@ export interface Goal {
   target_time_seconds: number
   deadline: string | null
   achieved: boolean
+  created_at: string
+}
+
+// ─── Goal-race training plan generator ─────────────────────────────────────
+// Not to be confused with `Goal` above (a simple target-time-by-event) or
+// the unrelated `swimmer_plans` table (self-authored solo JSONB workouts,
+// migration 010) — a GoalRace is a specific dated race with a full
+// LLM-generated, phase-periodized training plan.
+
+export type GoalEventType = 'pool_sprint' | 'pool_middle' | 'pool_distance' | 'open_water' | 'triathlon_leg'
+export type GoalPriority = 'A' | 'B' | 'C'
+export type GoalRaceStatus = 'draft' | 'active' | 'completed' | 'archived'
+export type PlanPhase = 'prep' | 'base' | 'build' | 'peak' | 'taper'
+export type PlanStatus = 'draft' | 'confirmed'
+export type PlanBlock = 'warm_up' | 'main_set' | 'cool_down'
+
+export const GOAL_EVENT_TYPES: GoalEventType[] = [
+  'pool_sprint',
+  'pool_middle',
+  'pool_distance',
+  'open_water',
+  'triathlon_leg',
+]
+export const GOAL_PRIORITIES: GoalPriority[] = ['A', 'B', 'C']
+export const PLAN_PHASES: PlanPhase[] = ['prep', 'base', 'build', 'peak', 'taper']
+
+export const GOAL_EVENT_TYPE_LABELS: Record<GoalEventType, string> = {
+  pool_sprint: 'Pool sprint (50/100)',
+  pool_middle: 'Pool middle distance (200/400)',
+  pool_distance: 'Pool distance (800+)',
+  open_water: 'Open water',
+  triathlon_leg: 'Triathlon swim leg',
+}
+
+export const PLAN_PHASE_LABELS: Record<PlanPhase, string> = {
+  prep: 'Prep',
+  base: 'Base',
+  build: 'Build',
+  peak: 'Peak',
+  taper: 'Taper',
+}
+
+export interface GoalRace {
+  id: string
+  swimmer_id: string
+  coach_id: string | null
+  name: string
+  race_date: string
+  event_type: GoalEventType
+  distance_meters: number
+  priority: GoalPriority
+  target_time_seconds: number | null
+  status: GoalRaceStatus
+  created_at: string
+}
+
+/**
+ * Structured per-set plan data (Milestone 2's LLM output lands here) — kept
+ * separate from the human-readable text in Session.warm_up/main_set/
+ * cool_down, which is what SessionBuilder actually edits. This is what
+ * Milestone 4's pace-comparison logic reads target values from.
+ */
+export interface PlanSetTarget {
+  id: string
+  session_id: string
+  block: PlanBlock
+  set_order: number
+  set_type: string | null
+  reps: number
+  distance_meters: number
+  stroke: Stroke | null
+  target_pace_seconds: number | null
+  css_offset_seconds: number | null
+  rest_seconds: number | null
+  intensity_zone: string | null
   created_at: string
 }
 
