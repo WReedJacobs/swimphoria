@@ -17,8 +17,8 @@ interface PoolFloorProps {
 // Deep-pool-blue art direction (seeded from tokens, then pushed to a dark blue
 // so it sits in the site's dark palette); caustics are the aqua primary pulled
 // toward cool cyan/white.
-const DEEP_BLUE = new THREE.Color(0.03, 0.11, 0.24)
-const CAUSTIC_CYAN = new THREE.Color(0.5, 0.85, 1.0)
+const DEEP_BLUE = new THREE.Color(0.01, 0.035, 0.46)
+const CAUSTIC_CYAN = new THREE.Color(0.14, 0.32, 0.98)
 
 interface Uniforms {
   [key: string]: THREE.IUniform
@@ -37,8 +37,8 @@ function makeUniforms(palette: HeroPalette, detail: number): Uniforms {
     uTime: { value: 0 },
     uScroll: { value: 0 },
     uResolution: { value: new THREE.Vector2(1, 1) },
-    uWater: { value: palette.bg.clone().lerp(DEEP_BLUE, 0.7) },
-    uWaterDeep: { value: palette.bg.clone() },
+    uWater: { value: palette.bg.clone().lerp(DEEP_BLUE, 0.72) },
+    uWaterDeep: { value: palette.bg.clone().lerp(DEEP_BLUE, 0.32) },
     uCaustic: { value: palette.primary.clone().lerp(CAUSTIC_CYAN, 0.55) },
     uCausticHot: { value: palette.bright.clone() },
     uDetail: { value: detail },

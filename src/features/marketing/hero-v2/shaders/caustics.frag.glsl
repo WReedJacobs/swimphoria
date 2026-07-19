@@ -70,8 +70,8 @@ void main() {
   float c = caustics(cuv, uTime);
   float c2 = caustics(cuv * 1.06 + vec2(3.1, 1.7), uTime * 1.2 + 4.0); // overlapping web
   c = max(c, c2 * 0.85);
-  vec3 caustic = mix(uCaustic, uCausticHot, smoothstep(0.4, 1.0, c));
-  col += caustic * c * 1.05 * (1.0 - black * 0.7);
+  vec3 caustic = mix(uCaustic, uCausticHot, smoothstep(0.58, 1.0, c));
+  col += caustic * c * 0.75 * (1.0 - black * 0.7);
 
   gl_FragColor = vec4(col, 1.0);
 }
