@@ -126,7 +126,14 @@ export default function App() {
         {/* Auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/role-select" element={<RoleSelectPage />} />
+        <Route
+          path="/role-select"
+          element={
+            <ProtectedRoute>
+              <RoleSelectPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
