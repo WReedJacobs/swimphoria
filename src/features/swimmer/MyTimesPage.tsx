@@ -17,62 +17,85 @@ import { timesToCsv, downloadCsv, parseCsvTimes } from '@/lib/csvUtils'
 import { STROKES, DISTANCES, COURSES, COURSE_LABELS } from '@/types'
 import type { Stroke, Course, SwimTime } from '@/types'
 
-/** One Strava-imported session: shows the auto-generated stats summary
- * (main_set, read-only) plus an editable box for what was actually done —
- * Strava only knows total distance/time, not the real sets/stroke. */
-function ImportedSessionRow({ session }: { session: StravaSession }) {
+/** A clickable row for one Strava-imported session — opens the detail modal
+ * where the auto-generated summary and the editable description live. */
+function ImportedSessionRow({ session, onOpen }: { session: StravaSession; onOpen: () => void }) {
+  return (
+    <button
+      onClick={onOpen}
+      className="flex w-full items-center justify-between gap-3 rounded-component border border-border bg-surface p-3 text-left transition-colors hover:border-primary/40"
+    >
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium text-text-primary">{session.title}</p>
+        <p className="truncate font-mono text-xs text-text-muted">
+          {new Date(session.date).toLocaleDateString()} · {session.main_set}
+        </p>
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-text-muted" />
+    </button>
+  )
+}
+
+/** Session detail modal — the auto-generated stats summary (read-only) plus
+ * an editable box for what was actually done, since Strava only knows total
+ * distance/time, not the real sets/stroke. This is where a session gets
+ * "enriched" once you've clicked into it. */
+function ImportedSessionModal({ session, onClose }: { session: StravaSession; onClose: () => void }) {
   const update = useUpdateStravaSessionNotes()
   const [notes, setNotes] = useState(session.notes ?? '')
   const dirty = notes !== (session.notes ?? '')
 
   return (
-    <div className="space-y-2 rounded-component border border-border bg-surface p-3">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium text-text-primary">{session.title}</p>
-          <p className="font-mono text-xs text-text-muted">
-            {new Date(session.date).toLocaleDateString()} · {session.main_set}
-          </p>
-        </div>
-      </div>
+    <Modal open onClose={onClose} title={session.title}>
+      <p className="mb-4 font-mono text-xs text-text-muted">
+        {new Date(session.date).toLocaleDateString()} · {session.main_set}
+      </p>
       <Textarea
-        placeholder="What did you actually do? e.g. 8×100 freestyle on 1:30, then a 400 pull…"
-        rows={2}
+        label="What did you actually do?"
+        placeholder="e.g. 8×100 freestyle on 1:30, then a 400 pull…"
+        rows={4}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
-      {dirty && (
-        <div className="flex justify-end">
-          <Button
-            size="sm"
-            leftIcon={<Save className="h-3.5 w-3.5" />}
-            loading={update.isPending}
-            onClick={() => update.mutate({ id: session.id, notes })}
-          >
-            Save
-          </Button>
-        </div>
-      )}
-    </div>
+      <div className="mt-4 flex justify-end gap-2">
+        <Button variant="ghost" onClick={onClose}>Close</Button>
+        <Button
+          leftIcon={<Save className="h-4 w-4" />}
+          loading={update.isPending}
+          disabled={!dirty}
+          onClick={async () => {
+            await update.mutateAsync({ id: session.id, notes })
+            onClose()
+          }}
+        >
+          Save
+        </Button>
+      </div>
+    </Modal>
   )
 }
 
 /** Recent Strava-synced swims — hidden entirely once there's nothing to show. */
 function StravaImportsCard() {
   const { data: sessions } = useStravaSessions()
+  const [openId, setOpenId] = useState<string | null>(null)
   if (!sessions || sessions.length === 0) return null
+  const openSession = sessions.find((s) => s.id === openId) ?? null
 
   return (
     <Card>
       <CardHeader
         title="Recent imports"
-        subtitle="Synced from Strava — add what you actually did."
+        subtitle="Synced from Strava — click one in to add what you actually did."
       />
-      <div className="space-y-3">
+      <div className="space-y-2">
         {sessions.map((s) => (
-          <ImportedSessionRow key={s.id} session={s} />
+          <ImportedSessionRow key={s.id} session={s} onOpen={() => setOpenId(s.id)} />
         ))}
       </div>
+      {openSession && (
+        <ImportedSessionModal session={openSession} onClose={() => setOpenId(null)} />
+      )}
     </Card>
   )
 }
