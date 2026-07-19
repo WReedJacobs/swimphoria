@@ -310,6 +310,14 @@ export function SettingsPage() {
         </Card>
       </div>
 
+      {/* Connected apps */}
+      {!isLocalMode && (
+        <div>
+          <SectionHeader kicker="Connected apps" />
+          <StravaCard />
+        </div>
+      )}
+
       {/* Security */}
       <div>
         <SectionHeader kicker="Security" />
@@ -380,14 +388,6 @@ export function SettingsPage() {
           </div>
         </Card>
       </div>
-
-      {/* Integrations */}
-      {!isLocalMode && (
-        <div>
-          <SectionHeader kicker="Integrations" />
-          <StravaCard />
-        </div>
-      )}
 
       {/* Account */}
       <div>
