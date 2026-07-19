@@ -330,3 +330,19 @@ export interface HydrationLog {
   logged_at: string
   amount_ml: number
 }
+
+// ---------- Billing & entitlements ----------
+export type Plan = 'free' | 'ai_coach' | 'coach_pro' | 'coach_club'
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled'
+
+export interface Subscription {
+  id: string
+  profile_id: string
+  plan: Plan
+  status: SubscriptionStatus
+  current_period_end: string | null
+  stripe_subscription_id: string | null
+  stripe_customer_id: string | null
+  created_at: string
+  updated_at: string
+}

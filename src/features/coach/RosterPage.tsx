@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Plus, Users, Search, Timer, Copy, Check, RefreshCw,
   Pencil, Trash2, ChevronDown, Mail, Flag,
@@ -18,7 +18,9 @@ import { AssignGoalRaceModal } from './AssignGoalRaceModal'
 import { useSwimmers, useUpdateSwimmer, useDeleteSwimmer, useInviteSwimmer } from '@/hooks/useSwimmers'
 import { useTimes } from '@/hooks/useTimes'
 import { useMyJoinCode } from '@/hooks/useJoinCode'
+import { useSubscription } from '@/hooks/useSubscription'
 import { formatTime } from '@/lib/formatTime'
+import { canAddSwimmer } from '@/lib/entitlements'
 import { cn } from '@/lib/cn'
 import { swimmerName } from '@/types'
 import type { Level, Swimmer } from '@/types'
@@ -248,8 +250,10 @@ function SwimmerCard({
 // ─── page ─────────────────────────────────────────────────────────────────────
 
 export function RosterPage() {
+  const navigate = useNavigate()
   const { data: swimmers, isLoading } = useSwimmers()
   const { data: times } = useTimes()
+  const { data: subscription } = useSubscription()
   const deleteSwimmer = useDeleteSwimmer()
   const inviteSwimmer = useInviteSwimmer()
   const [modal, setModal] = useState(false)
@@ -305,6 +309,17 @@ export function RosterPage() {
     return keys.map((k) => ({ squadName: k || null, swimmers: map.get(k)! }))
   }, [filtered, hasAnySquad])
 
+  // Free plan caps a roster at 2 swimmers — real enforcement is the
+  // swimmer_roster_limit DB trigger (034); this is the proactive UX so a
+  // coach hits an upgrade prompt instead of a raw insert error.
+  const openAddSwimmer = () => {
+    if (!canAddSwimmer(subscription ?? null, (swimmers ?? []).length)) {
+      navigate('/coach/upgrade')
+      return
+    }
+    setModal(true)
+  }
+
   const toggleCollapse = (key: string) =>
     setCollapsed((prev) => {
       const next = new Set(prev)
@@ -358,7 +373,7 @@ export function RosterPage() {
           <Button variant="outline" leftIcon={<Flag className="h-4 w-4" />} onClick={() => setGoalRaceModal(true)}>
             Assign goal race
           </Button>
-          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setModal(true)}>
+          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openAddSwimmer}>
             Add swimmer
           </Button>
         </div>
@@ -372,7 +387,7 @@ export function RosterPage() {
           title="Add your first swimmer to get started"
           description="Add swimmers manually below, or share your join code above so swimmers can link themselves to your roster instantly."
           action={
-            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setModal(true)}>
+            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openAddSwimmer}>
               Add swimmer
             </Button>
           }

@@ -14,7 +14,50 @@ import { useTheme, type Theme } from '@/hooks/useTheme'
 import { useStravaConnection, useSyncStrava, useDisconnectStrava, startStravaConnect } from '@/hooks/useStrava'
 import { useNutritionProfile } from '@/hooks/useNutritionProfile'
 import { NutritionProfileSetup } from './NutritionProfileSetup'
+import { useSubscription } from '@/hooks/useSubscription'
+import { useCreatePortalSession } from '@/hooks/useCheckout'
 import { cn } from '@/lib/cn'
+
+/** Plan status + self-serve billing management (Stripe Customer Portal).
+ * Upgrading itself happens on UpgradePage — this is only for existing
+ * subscribers to change/cancel. */
+function BillingCard() {
+  const { profile } = useAuth()
+  const { data: subscription } = useSubscription()
+  const portal = useCreatePortalSession()
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+
+  const openPortal = async () => {
+    setError(null)
+    try {
+      await portal.mutateAsync()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not open billing portal')
+    }
+  }
+
+  const isSubscribed = subscription && subscription.status !== 'canceled'
+
+  return (
+    <Card>
+      <CardHeader
+        title="Billing"
+        subtitle={isSubscribed ? `${subscription.plan} · ${subscription.status}` : 'Free plan'}
+      />
+      {error && <p className="mb-2 text-sm text-danger">{error}</p>}
+      {isSubscribed ? (
+        <Button variant="secondary" loading={portal.isPending} onClick={openPortal}>
+          Manage billing
+        </Button>
+      ) : (
+        <Button onClick={() => navigate(profile?.role === 'coach' ? '/coach/upgrade' : '/swimmer/upgrade')}>
+          Upgrade
+        </Button>
+      )}
+    </Card>
+  )
+}
 
 /** Edit entry for the nutrition profile (training + preference inputs only —
  * see NutritionProfileSetup). Setup itself happens inline on the Nutrition
@@ -353,6 +396,14 @@ export function SettingsPage() {
         <div>
           <SectionHeader kicker="Nutrition" />
           <NutritionSettingsCard />
+        </div>
+      )}
+
+      {/* Billing */}
+      {!isLocalMode && (
+        <div>
+          <SectionHeader kicker="Billing" />
+          <BillingCard />
         </div>
       )}
 

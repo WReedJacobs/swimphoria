@@ -102,6 +102,7 @@ const AdminDashboard = lazy(() => import('@/features/admin/AdminDashboard').then
 // Shared
 const DrillLibraryPage = lazy(() => import('@/features/shared/DrillLibraryPage').then(m => ({ default: m.DrillLibraryPage })))
 const SettingsPage     = lazy(() => import('@/features/shared/SettingsPage').then(m => ({ default: m.SettingsPage })))
+const UpgradePage      = lazy(() => import('@/features/shared/UpgradePage').then(m => ({ default: m.UpgradePage })))
 const LeaderboardPage  = lazy(() => import('@/features/shared/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const NotFoundPage     = lazy(() => import('@/features/shared/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
 
@@ -155,6 +156,7 @@ export default function App() {
           <Route path="/coach/roster/:swimmerId" element={<SwimmerProfilePage />} />
           <Route path="/coach/log" element={<TimeLogger />} />
           <Route path="/coach/sessions" element={<SessionsPage />} />
+          <Route path="/coach/upgrade" element={<UpgradePage />} />
           <Route path="/coach/sessions/new" element={<SessionBuilder />} />
           <Route path="/coach/sessions/:sessionId/edit" element={<SessionBuilder />} />
           <Route path="/coach/progress" element={<ProgressPage />} />
@@ -192,6 +194,7 @@ export default function App() {
           <Route path="/swimmer/goal-race" element={<GoalRacePage />} />
           <Route path="/swimmer/goal-race/:goalRaceId" element={<GoalRaceDetailPage />} />
           <Route path="/swimmer/nutrition" element={<SwimmerNutritionPage />} />
+          <Route path="/swimmer/upgrade" element={<UpgradePage />} />
           {/* Reuses the exact same SessionBuilder as /coach/sessions/* — for
               self-coached swimmers (swimmers.coach_id === their own id),
               whose generated/authored sessions they own by the same RLS
