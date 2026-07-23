@@ -17,8 +17,22 @@ interface StravaActivity {
   sport_type?: string
   distance: number // metres
   moving_time: number // seconds
+  elapsed_time: number // seconds — includes rest/pauses, unlike moving_time
   start_date: string // ISO
   pool_length?: number // metres, only present for pool swims
+}
+
+interface StravaLap {
+  distance: number // metres
+  moving_time: number // seconds
+  elapsed_time: number // seconds
+  start_date: string // ISO
+}
+
+interface Rep {
+  distance: number
+  time_seconds: number
+  recorded_at: string
 }
 
 /** Thrown when Strava's refresh_token itself is no longer valid (revoked by
@@ -110,6 +124,62 @@ function formatDuration(totalSeconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
+/** Cheap, no-extra-request check on data we already have: does this
+ * activity look like it has real rest in it (an interval set) rather than
+ * one continuous swim? Gates the lap fetch below — most swims are
+ * continuous, and lap-fetching every single one would multiply Strava API
+ * calls across a sync and risk its rate limit for no benefit. */
+function hasRestPattern(activity: StravaActivity): boolean {
+  const restSeconds = activity.elapsed_time - activity.moving_time
+  return restSeconds > 60 && restSeconds > activity.moving_time * 0.08
+}
+
+/** Best-effort — a lap-fetch failure (network blip, rate limit, activity
+ * with laps disabled) should degrade to the single-total import, not fail
+ * the whole sync. */
+async function fetchLaps(activityId: number, accessToken: string): Promise<StravaLap[] | null> {
+  try {
+    const res = await fetch(`https://www.strava.com/api/v3/activities/${activityId}/laps`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Turns lap data into individual reps (e.g. 4×200m) — but only when the
+ * laps actually look trustworthy. Strava's own developer community has
+ * documented cases of pool-swim lap data coming back incomplete (a FIT file
+ * with 63 recorded laps once came back with only 36 via this endpoint), so
+ * this validates before trusting it: laps should roughly sum to the
+ * activity's total distance, and there should be a sane number of them.
+ * Returns null — meaning "fall back to one combined row" — whenever that
+ * doesn't hold, rather than importing data that's silently wrong.
+ */
+function deriveReps(activity: StravaActivity, laps: StravaLap[] | null): Rep[] | null {
+  if (!laps) return null
+
+  // Near-zero-distance laps are how some devices record the rest interval
+  // itself as its own lap; real swim reps are what's left after dropping them.
+  const swimLaps = laps.filter((l) => l.distance >= 5)
+  if (swimLaps.length < 2 || swimLaps.length > 60) return null
+
+  const lapDistanceSum = swimLaps.reduce((sum, l) => sum + l.distance, 0)
+  const withinTolerance = Math.abs(lapDistanceSum - activity.distance) <= activity.distance * 0.15
+  if (!withinTolerance) return null
+
+  return swimLaps.map((l) => ({
+    distance: Math.round(l.distance),
+    // moving_time already excludes rest, whether rest is baked into this
+    // same lap's elapsed_time or shows up as its own filtered-out lap above.
+    time_seconds: Math.round(l.moving_time),
+    recorded_at: l.start_date,
+  }))
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -194,13 +264,26 @@ Deno.serve(async (req) => {
     let imported = 0
 
     for (const a of swims) {
-      const distance = Math.round(a.distance)
       const course = a.pool_length && a.pool_length >= 45 ? 'LCM' : 'SCM'
+
+      // Only bother fetching laps for activities that look like they have
+      // real rest in them — most swims are continuous, and lap-fetching
+      // every single one would multiply Strava API calls for no benefit.
+      const laps = hasRestPattern(a) ? await fetchLaps(a.id, accessToken) : null
+      const reps: Rep[] = deriveReps(a, laps) ?? [
+        { distance: Math.round(a.distance), time_seconds: a.moving_time, recorded_at: a.start_date },
+      ]
+
+      const mainSet =
+        reps.length > 1
+          ? `${reps.length} × ~${Math.round(reps.reduce((s, r) => s + r.distance, 0) / reps.length / 25) * 25}m freestyle · ${formatDuration(a.moving_time)} total — imported from Strava`
+          : `${reps[0].distance}m freestyle · ${formatDuration(reps[0].time_seconds)} — imported from Strava`
 
       // Each Strava activity becomes a session (title + an auto-generated
       // summary in main_set) rather than a bare times row — the athlete can
       // then overwrite `notes` on Recent Imports (My Times) to describe what
-      // they actually did, since Strava only knows total distance/time.
+      // they actually did, since Strava only knows total distance/time (or,
+      // when lap data checks out, the individual rep distances/times).
       const { data: sessionRows, error: sessionErr } = await adminClient
         .from('sessions')
         .upsert(
@@ -209,7 +292,7 @@ Deno.serve(async (req) => {
             title: a.name || 'Strava swim',
             date: a.start_date.slice(0, 10),
             type: 'training',
-            main_set: `${distance}m freestyle · ${formatDuration(a.moving_time)} — imported from Strava`,
+            main_set: mainSet,
             external_source: 'strava',
             external_id: String(a.id),
           },
@@ -226,24 +309,26 @@ Deno.serve(async (req) => {
         .from('session_assignments')
         .insert({ session_id: sessionId, swimmer_id: swimmerId, attended: true })
 
-      const key = `${distance}-${course}`
-      const best = bestByKey.get(key)
-      const isPb = best === undefined || a.moving_time < best
-      if (isPb) bestByKey.set(key, a.moving_time)
+      for (const rep of reps) {
+        const key = `${rep.distance}-${course}`
+        const best = bestByKey.get(key)
+        const isPb = best === undefined || rep.time_seconds < best
+        if (isPb) bestByKey.set(key, rep.time_seconds)
 
-      await adminClient.from('times').insert({
-        swimmer_id: swimmerId,
-        coach_id: null,
-        session_id: sessionId,
-        stroke: 'freestyle',
-        distance,
-        course,
-        time_seconds: a.moving_time,
-        is_pb: isPb,
-        is_self_logged: true,
-        recorded_at: a.start_date,
-        notes: `Imported from Strava — "${a.name}"`,
-      })
+        await adminClient.from('times').insert({
+          swimmer_id: swimmerId,
+          coach_id: null,
+          session_id: sessionId,
+          stroke: 'freestyle',
+          distance: rep.distance,
+          course,
+          time_seconds: rep.time_seconds,
+          is_pb: isPb,
+          is_self_logged: true,
+          recorded_at: rep.recorded_at,
+          notes: `Imported from Strava — "${a.name}"`,
+        })
+      }
     }
 
     await adminClient
